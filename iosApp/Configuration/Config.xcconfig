@@ -1,0 +1,7 @@
+TEAM_ID=
+
+PRODUCT_NAME=AndroidResTranslator
+PRODUCT_BUNDLE_IDENTIFIER=fun.abbas.android_res_translator.AndroidResTranslator$(TEAM_ID)
+
+CURRENT_PROJECT_VERSION=1
+MARKETING_VERSION=1.0
