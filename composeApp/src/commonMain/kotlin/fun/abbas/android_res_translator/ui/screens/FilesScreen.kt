@@ -33,6 +33,7 @@ import `fun`.abbas.android_res_translator.ui.screens.main.TranslationProjectRepo
 import `fun`.abbas.android_res_translator.ui.settings.AppSettingsRepository
 import `fun`.abbas.android_res_translator.ui.theme.AppControlShape
 import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
+import `fun`.abbas.android_res_translator.ui.translation.LanguagePickerCatalog
 
 @Composable
 fun FilesScreen(
@@ -49,6 +50,7 @@ fun FilesScreen(
     val store = remember(projectRepository, fileTree) { FileBrowserStore(fileTree, projectRepository) }
     var mode by remember { mutableStateOf<FilesUiMode>(FilesUiMode.Browse) }
     val snap by settings.snapshot.collectAsState()
+    val selectedEngine = remember(snap) { LanguagePickerCatalog.resolveSelectedEngine(snap) }
     var compactSearch by remember { mutableStateOf("") }
 
     LaunchedEffect(searchQuery) {
@@ -132,6 +134,7 @@ fun FilesScreen(
                     }
                 FileEditorScreen(
                     controller = controller,
+                    selectedEngine = selectedEngine,
                     xmlFileAccess = xmlFileAccess,
                     onBack = { mode = FilesUiMode.Browse },
                     modifier = modifier,

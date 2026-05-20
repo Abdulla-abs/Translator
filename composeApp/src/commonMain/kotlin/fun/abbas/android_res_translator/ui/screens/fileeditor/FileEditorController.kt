@@ -94,6 +94,19 @@ class FileEditorController(
         _state.update { it.copy(keyFilter = query) }
     }
 
+    fun setTranslationLanguages(
+        sourceLang: String,
+        targetLang: String,
+    ) {
+        _state.update {
+            it.copy(
+                sourceLang = sourceLang,
+                targetLang = targetLang,
+            )
+        }
+        scheduleResultFlush()
+    }
+
     fun onTranslationButtonClick() {
         val current = _state.value
         when {
@@ -108,6 +121,27 @@ class FileEditorController(
                 startTranslation()
             }
         }
+    }
+
+    /**
+     * 在全部条目已成功翻译的前提下，清空译文并从头重新翻译。
+     */
+    fun retranslateAllFromScratch() {
+        _state.update { s ->
+            s.copy(
+                entries =
+                    s.entries.map { e ->
+                        if (e.translatable && e.status is EntryStatus.Completed) {
+                            e.copy(status = EntryStatus.Pending, targetText = null)
+                        } else {
+                            e
+                        }
+                    },
+                isPaused = false,
+                exportMessage = null,
+            )
+        }
+        startTranslation()
     }
 
     fun retryEntry(key: String) {

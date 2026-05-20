@@ -17,6 +17,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -27,6 +28,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
@@ -49,15 +51,19 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.ui.unit.dp
 import `fun`.abbas.android_res_translator.ui.XmlFileAccess
 import `fun`.abbas.android_res_translator.ui.components.AppGlassCard
+import `fun`.abbas.android_res_translator.ui.screens.main.LanguagePickerDialog
 import `fun`.abbas.android_res_translator.ui.theme.AppCodeSmallTextStyle
 import `fun`.abbas.android_res_translator.ui.theme.AppControlShape
 import `fun`.abbas.android_res_translator.ui.theme.AppLabelCapsTextStyle
 import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
+import `fun`.abbas.android_res_translator.ui.translation.ActiveTranslationEngine
+import `fun`.abbas.android_res_translator.ui.translation.LanguagePickerCatalog
 import kotlinx.coroutines.launch
 
 @Composable
 fun FileEditorScreen(
     controller: FileEditorController,
+    selectedEngine: ActiveTranslationEngine?,
     xmlFileAccess: XmlFileAccess,
     onBack: () -> Unit,
     onEditorStateChange: ((FileEditorState) -> Unit)? = null,
@@ -67,6 +73,16 @@ fun FileEditorScreen(
     val state by controller.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val focusManager = LocalFocusManager.current
+    var editingLang by remember { mutableStateOf<LangEdit?>(null) }
+    var showRetranslateConfirm by remember { mutableStateOf(false) }
+
+    val onTranslationAction: () -> Unit = {
+        if (state.isExportReady && !state.isRunning && !state.isPaused) {
+            showRetranslateConfirm = true
+        } else {
+            controller.onTranslationButtonClick()
+        }
+    }
 
     AppBackHandler(onBack = onBack)
 
@@ -97,6 +113,8 @@ fun FileEditorScreen(
         state.isPaused,
         state.keyFilter,
         state.errorCount,
+        state.sourceLang,
+        state.targetLang,
     ) {
         onEditorStateChange?.invoke(state)
     }
@@ -134,20 +152,35 @@ fun FileEditorScreen(
                     BoxWithConstraints(Modifier.fillMaxWidth()) {
                         if (maxWidth >= 700.dp) {
                             Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
-                                FileEditorProgressCard(state, Modifier.weight(2f))
+                                FileEditorProgressCard(
+                                    state = state,
+                                    onSwapLanguages = {
+                                        controller.setTranslationLanguages(state.targetLang, state.sourceLang)
+                                    },
+                                    onEditSourceLang = { editingLang = LangEdit.Source },
+                                    onEditTargetLang = { editingLang = LangEdit.Target },
+                                    modifier = Modifier.weight(2f),
+                                )
                                 FileEditorActionsCard(
                                     state = state,
-                                    onTranslationAction = controller::onTranslationButtonClick,
+                                    onTranslationAction = onTranslationAction,
                                     onExportClick = { onExportClick() },
                                     modifier = Modifier.weight(1f),
                                 )
                             }
                         } else {
                             Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
-                                FileEditorProgressCard(state)
+                                FileEditorProgressCard(
+                                    state = state,
+                                    onSwapLanguages = {
+                                        controller.setTranslationLanguages(state.targetLang, state.sourceLang)
+                                    },
+                                    onEditSourceLang = { editingLang = LangEdit.Source },
+                                    onEditTargetLang = { editingLang = LangEdit.Target },
+                                )
                                 FileEditorActionsCard(
                                     state = state,
-                                    onTranslationAction = controller::onTranslationButtonClick,
+                                    onTranslationAction = onTranslationAction,
                                     onExportClick = { onExportClick() },
                                 )
                             }
@@ -165,6 +198,67 @@ fun FileEditorScreen(
                 }
             }
         }
+    }
+
+    editingLang?.let { which ->
+        val isSource = which == LangEdit.Source
+        val options =
+            remember(selectedEngine, state.sourceLang, state.targetLang, which) {
+                when {
+                    selectedEngine == null -> emptyList()
+                    isSource -> LanguagePickerCatalog.sourceOptions(selectedEngine, state.targetLang)
+                    else -> LanguagePickerCatalog.targetOptions(selectedEngine, state.sourceLang)
+                }
+            }
+        val selectedCode = if (isSource) state.sourceLang else state.targetLang
+        LanguagePickerDialog(
+            title = if (isSource) "选择源语言" else "选择目标语言",
+            engine = selectedEngine,
+            options = options,
+            selectedCode = selectedCode,
+            onDismiss = { editingLang = null },
+            onSelect = { code ->
+                if (which == LangEdit.Source) {
+                    controller.setTranslationLanguages(
+                        sourceLang = code,
+                        targetLang = state.targetLang,
+                    )
+                } else {
+                    controller.setTranslationLanguages(
+                        sourceLang = state.sourceLang,
+                        targetLang = code,
+                    )
+                }
+            },
+        )
+    }
+
+    if (showRetranslateConfirm) {
+        AlertDialog(
+            onDismissRequest = { showRetranslateConfirm = false },
+            title = { Text("重新翻译") },
+            text = {
+                Text(
+                    "文件已全部翻译完成，是否重新翻译？确认后当前译文将被清空并从头开始。",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showRetranslateConfirm = false
+                        controller.retranslateAllFromScratch()
+                    },
+                ) {
+                    Text("重新翻译")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRetranslateConfirm = false }) {
+                    Text("取消")
+                }
+            },
+        )
     }
 }
 
@@ -277,4 +371,9 @@ private fun XmlEntriesSection(
             }
         }
     }
+}
+
+private enum class LangEdit {
+    Source,
+    Target,
 }

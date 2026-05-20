@@ -33,6 +33,7 @@ import `fun`.abbas.android_res_translator.ui.screens.fileeditor.FileEditorContro
 import `fun`.abbas.android_res_translator.ui.screens.fileeditor.FileEditorScreen
 import `fun`.abbas.android_res_translator.ui.settings.AppSettingsRepository
 import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
+import `fun`.abbas.android_res_translator.ui.translation.LanguagePickerCatalog
 
 @Composable
 fun MainDashboardScreen(
@@ -45,6 +46,7 @@ fun MainDashboardScreen(
     modifier: Modifier = Modifier,
 ) {
     val snap by settings.snapshot.collectAsState()
+    val selectedEngine = remember(snap) { LanguagePickerCatalog.resolveSelectedEngine(snap) }
     val scroll = rememberScrollState()
     var uploadCounter by remember { mutableIntStateOf(0) }
     var mode by remember { mutableStateOf<DashboardUiMode>(DashboardUiMode.Home) }
@@ -94,6 +96,7 @@ fun MainDashboardScreen(
                     }
                 FileEditorScreen(
                     controller = controller,
+                    selectedEngine = selectedEngine,
                     xmlFileAccess = xmlFileAccess,
                     onBack = { mode = DashboardUiMode.Home },
                     onEditorStateChange = { editorState ->
