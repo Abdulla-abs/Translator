@@ -12,7 +12,7 @@ data class ContributorOrg(
 )
 
 object AboutContent {
-    const val GITHUB_URL = "https://github.com/abbas/android-res-translator"
+    const val GITHUB_URL = "https://github.com/Abdulla-abs/Translator"
     const val KOTLIN_VERSION_LABEL = "Kotlin 2.3"
 
     val featuredLicenses =
