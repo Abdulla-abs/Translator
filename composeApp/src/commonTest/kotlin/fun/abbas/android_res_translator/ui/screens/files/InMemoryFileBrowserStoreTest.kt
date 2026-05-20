@@ -81,7 +81,8 @@ class FileBrowserStoreTest {
     @Test
     fun recentProject_appearsInResources() = runTest(UnconfinedTestDispatcher()) {
         val recent = InMemoryRecentXmlProjectRepository()
-        recent.addOrUpdate(
+        val xml = "<resources><string name=\"a\">A</string></resources>"
+        recent.addOrUpdateWithSource(
             RecentXmlProject(
                 id = "uploaded1",
                 displayName = "custom.xml",
@@ -90,14 +91,14 @@ class FileBrowserStoreTest {
                 translatedKeys = 0,
                 totalKeys = 3,
                 isComplete = false,
-                sourceXml = "<resources><string name=\"a\">A</string></resources>",
             ),
+            sourceXml = xml,
         )
         val store = makeStore(recent)
         advanceUntilIdle()
         navigateToResources(store)
         assertTrue(store.state.value.items.any { it is FileBrowserItem.XmlFile && it.name == "custom.xml" })
         val content = store.loadXmlContent("uploaded1")
-        assertEquals("<resources><string name=\"a\">A</string></resources>", content)
+        assertEquals(xml, content)
     }
 }

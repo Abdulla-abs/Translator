@@ -35,7 +35,6 @@ class RecentXmlProjectRepositoryTest {
         assertEquals(1, updated.translatedKeys)
         assertEquals(2, updated.totalKeys)
         assertEquals(false, updated.isComplete)
-        assertEquals(2, updated.editorSession?.entries?.size)
     }
 
     @Test

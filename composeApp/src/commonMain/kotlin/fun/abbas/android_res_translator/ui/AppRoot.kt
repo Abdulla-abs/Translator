@@ -63,7 +63,7 @@ import `fun`.abbas.android_res_translator.ui.screens.FilesScreen
 import `fun`.abbas.android_res_translator.ui.screens.MainDashboardScreen
 import `fun`.abbas.android_res_translator.ui.screens.SettingsScreen
 import `fun`.abbas.android_res_translator.ui.screens.fileeditor.FileEditorControllerStore
-import `fun`.abbas.android_res_translator.ui.screens.main.InMemoryRecentXmlProjectRepository
+import `fun`.abbas.android_res_translator.ui.screens.main.createTranslationProjectRepository
 import `fun`.abbas.android_res_translator.ui.settings.AppSettingsRepository
 import `fun`.abbas.android_res_translator.ui.settings.RepositorySecretsProvider
 import `fun`.abbas.android_res_translator.ui.settings.createAppSettingsRepository
@@ -94,8 +94,8 @@ fun AppRoot(settingsRepository: AppSettingsRepository = createAppSettingsReposit
         onDispose { services.close() }
     }
     val xmlFileAccess = rememberXmlFileAccess()
-    val projectRepository = remember { InMemoryRecentXmlProjectRepository() }
     val editorScope = rememberCoroutineScope()
+    val projectRepository = remember(editorScope) { createTranslationProjectRepository(editorScope) }
     val editorControllerStore =
         remember(services, editorScope) {
             FileEditorControllerStore(services, editorScope)

@@ -3,11 +3,13 @@ package `fun`.abbas.android_res_translator.ui.screens.fileeditor
 import `fun`.abbas.android_res_translator.core.resources.model.StringResourceFile
 import `fun`.abbas.android_res_translator.core.resources.xml.StringsXmlCodec
 import `fun`.abbas.android_res_translator.core.translation.TranslationOutcome
+import `fun`.abbas.android_res_translator.persistence.TranslationProjectFileStore
 import `fun`.abbas.android_res_translator.ui.TranslationServices
 import `fun`.abbas.android_res_translator.ui.toUserMessage
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,9 +25,12 @@ class FileEditorController(
     targetLang: String,
     private val sourceXml: String,
     initialSession: FileEditorSessionSnapshot? = null,
+    private val resultPath: String? = null,
+    private val onPersistResult: (() -> Unit)? = null,
 ) {
     private var parsedFile: StringResourceFile = StringResourceFile()
     private var translationJob: Job? = null
+    private var flushResultJob: Job? = null
 
     private val _state =
         MutableStateFlow(
@@ -178,6 +183,7 @@ class FileEditorController(
                     // paused / disposed
                 } finally {
                     _state.update { it.copy(isRunning = false) }
+                    scheduleResultFlush(immediate = true)
                 }
             }
     }
@@ -191,9 +197,28 @@ class FileEditorController(
                 entries = state.entries.map { if (it.key == key) transform(it) else it },
             )
         }
+        scheduleResultFlush()
+    }
+
+    private fun scheduleResultFlush(immediate: Boolean = false) {
+        val path = resultPath ?: return
+        flushResultJob?.cancel()
+        flushResultJob =
+            scope.launch {
+                if (!immediate) delay(400)
+                runCatching {
+                    TranslationProjectFileStore.writeResultFromEditorState(
+                        resultPath = path,
+                        sourceXml = sourceXml,
+                        state = _state.value,
+                    )
+                }
+                onPersistResult?.invoke()
+            }
     }
 
     fun dispose() {
         translationJob?.cancel()
+        flushResultJob?.cancel()
     }
 }

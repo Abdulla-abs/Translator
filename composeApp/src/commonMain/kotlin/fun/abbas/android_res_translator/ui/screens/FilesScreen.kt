@@ -29,7 +29,7 @@ import `fun`.abbas.android_res_translator.ui.screens.fileeditor.FileEditorScreen
 import `fun`.abbas.android_res_translator.ui.screens.files.FileBrowserItem
 import `fun`.abbas.android_res_translator.ui.screens.files.FileBrowserScreen
 import `fun`.abbas.android_res_translator.ui.screens.files.FileBrowserStore
-import `fun`.abbas.android_res_translator.ui.screens.main.InMemoryRecentXmlProjectRepository
+import `fun`.abbas.android_res_translator.ui.screens.main.TranslationProjectRepository
 import `fun`.abbas.android_res_translator.ui.settings.AppSettingsRepository
 import `fun`.abbas.android_res_translator.ui.theme.AppControlShape
 import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
@@ -39,7 +39,7 @@ fun FilesScreen(
     settings: AppSettingsRepository,
     services: TranslationServices,
     xmlFileAccess: XmlFileAccess,
-    projectRepository: InMemoryRecentXmlProjectRepository,
+    projectRepository: TranslationProjectRepository,
     editorControllerStore: FileEditorControllerStore,
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
@@ -82,6 +82,8 @@ fun FilesScreen(
                         FileBrowserScreen(
                             store = store,
                             recentProjects = projectRepository,
+                            defaultSourceLang = snap.defaultSourceLang,
+                            defaultTargetLang = snap.defaultTargetLang,
                             xmlFileAccess = xmlFileAccess,
                             onOpenFile = { file -> mode = FilesUiMode.Detail(file) },
                             showCompactSearch = true,
@@ -97,6 +99,8 @@ fun FilesScreen(
                     FileBrowserScreen(
                         store = store,
                         recentProjects = projectRepository,
+                        defaultSourceLang = snap.defaultSourceLang,
+                        defaultTargetLang = snap.defaultTargetLang,
                         xmlFileAccess = xmlFileAccess,
                         onOpenFile = { file -> mode = FilesUiMode.Detail(file) },
                         showCompactSearch = false,

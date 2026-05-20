@@ -38,7 +38,7 @@ import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
 
 @Composable
 fun FileProjectsSection(
-    repository: InMemoryRecentXmlProjectRepository,
+    repository: TranslationProjectRepository,
     onViewAllClick: () -> Unit,
     onUploadClick: () -> Unit,
     onProjectClick: (RecentXmlProject) -> Unit,

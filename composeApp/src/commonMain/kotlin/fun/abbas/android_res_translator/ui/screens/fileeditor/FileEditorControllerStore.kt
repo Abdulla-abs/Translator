@@ -23,7 +23,9 @@ class FileEditorControllerStore(
         targetLang: String,
         sourceXml: String,
         initialSession: FileEditorSessionSnapshot? = null,
+        resultPath: String? = null,
         onStateChange: ((FileEditorState) -> Unit)? = null,
+        onPersistResult: (() -> Unit)? = null,
     ): FileEditorController {
         val existing = controllers[key]
         if (existing != null) {
@@ -42,6 +44,8 @@ class FileEditorControllerStore(
                 targetLang = targetLang,
                 sourceXml = sourceXml,
                 initialSession = initialSession,
+                resultPath = resultPath,
+                onPersistResult = onPersistResult,
             )
         controllers[key] = controller
         if (onStateChange != null) {
@@ -61,6 +65,8 @@ class FileEditorControllerStore(
                 controller.state.collect { onStateChange(it) }
             }
     }
+
+    fun currentState(key: String): FileEditorState? = controllers[key]?.state?.value
 
     fun release(key: String) {
         stateObservers.remove(key)?.cancel()

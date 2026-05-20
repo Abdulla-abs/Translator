@@ -1,8 +1,7 @@
 package `fun`.abbas.android_res_translator.ui.screens.main
 
-import `fun`.abbas.android_res_translator.ui.screens.fileeditor.FileEditorSessionSnapshot
 import `fun`.abbas.android_res_translator.ui.screens.fileeditor.FileEditorState
-import `fun`.abbas.android_res_translator.ui.screens.fileeditor.toSessionSnapshot
+import `fun`.abbas.android_res_translator.util.currentEpochMillis
 
 data class RecentXmlProject(
     val id: String,
@@ -12,8 +11,12 @@ data class RecentXmlProject(
     val translatedKeys: Int,
     val totalKeys: Int,
     val isComplete: Boolean,
-    val sourceXml: String = "",
-    val editorSession: FileEditorSessionSnapshot? = null,
+    val sourceLang: String = "en",
+    val targetLang: String = "zh",
+    /** 磁盘上的 source.xml 绝对路径 */
+    val sourcePath: String = "",
+    /** 磁盘上的 result.xml 绝对路径 */
+    val resultPath: String = "",
 )
 
 fun RecentXmlProject.withEditorState(state: FileEditorState): RecentXmlProject {
@@ -23,8 +26,7 @@ fun RecentXmlProject.withEditorState(state: FileEditorState): RecentXmlProject {
         progressPercent = if (total == 0) 0f else done.toFloat() / total.toFloat(),
         translatedKeys = done,
         totalKeys = total,
-        isComplete = total > 0 && done >= total,
-        modifiedAtEpochMs = System.currentTimeMillis(),
-        editorSession = state.toSessionSnapshot(),
+        isComplete = total > 0 && done >= total && state.errorCount == 0,
+        modifiedAtEpochMs = currentEpochMillis(),
     )
 }

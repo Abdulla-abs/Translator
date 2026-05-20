@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import `fun`.abbas.android_res_translator.ui.screens.main.RecentXmlProject
+import `fun`.abbas.android_res_translator.util.currentEpochMillis
 import `fun`.abbas.android_res_translator.ui.theme.AppCodeSmallTextStyle
 import `fun`.abbas.android_res_translator.ui.theme.AppLabelCapsTextStyle
 import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
@@ -143,7 +144,7 @@ fun FileProjectCard(
 
 private fun formatModifiedAgo(epochMs: Long): String {
     if (epochMs <= 0L) return "Modified just now"
-    val hours = ((System.currentTimeMillis() - epochMs) / 3_600_000).coerceAtLeast(0)
+    val hours = ((currentEpochMillis() - epochMs) / 3_600_000).coerceAtLeast(0)
     return when {
         hours < 1 -> "Modified just now"
         hours < 24 -> "Modified ${hours}h ago"

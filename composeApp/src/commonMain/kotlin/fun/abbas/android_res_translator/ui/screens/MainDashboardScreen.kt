@@ -25,12 +25,12 @@ import `fun`.abbas.android_res_translator.ui.TranslationServices
 import `fun`.abbas.android_res_translator.ui.XmlFileAccess
 import `fun`.abbas.android_res_translator.ui.screens.main.DashboardInsightSection
 import `fun`.abbas.android_res_translator.ui.screens.main.FileProjectsSection
-import `fun`.abbas.android_res_translator.ui.screens.main.InMemoryRecentXmlProjectRepository
+import `fun`.abbas.android_res_translator.persistence.TranslationProjectFileStore
 import `fun`.abbas.android_res_translator.ui.screens.main.QuickTranslateSection
+import `fun`.abbas.android_res_translator.ui.screens.main.TranslationProjectRepository
 import `fun`.abbas.android_res_translator.ui.files.WithFilePermissions
 import `fun`.abbas.android_res_translator.ui.screens.fileeditor.FileEditorControllerStore
 import `fun`.abbas.android_res_translator.ui.screens.fileeditor.FileEditorScreen
-import `fun`.abbas.android_res_translator.ui.screens.main.recentProjectFromXml
 import `fun`.abbas.android_res_translator.ui.settings.AppSettingsRepository
 import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
 
@@ -39,7 +39,7 @@ fun MainDashboardScreen(
     settings: AppSettingsRepository,
     services: TranslationServices,
     xmlFileAccess: XmlFileAccess,
-    projectRepository: InMemoryRecentXmlProjectRepository,
+    projectRepository: TranslationProjectRepository,
     editorControllerStore: FileEditorControllerStore,
     onNavigateToFiles: () -> Unit,
     modifier: Modifier = Modifier,
@@ -52,7 +52,12 @@ fun MainDashboardScreen(
     fun onUploadXml(xml: String) {
         uploadCounter += 1
         val name = if (uploadCounter == 1) "strings.xml" else "strings_$uploadCounter.xml"
-        projectRepository.addOrUpdate(recentProjectFromXml(xml, name))
+        projectRepository.addOrUpdateFromUpload(
+            sourceXml = xml,
+            displayName = name,
+            sourceLang = snap.defaultSourceLang,
+            targetLang = snap.defaultTargetLang,
+        )
     }
 
     val projects by projectRepository.projects.collectAsState()
@@ -63,18 +68,27 @@ fun MainDashboardScreen(
             val project = projects.find { it.id == current.projectId }
             if (project != null) {
                 val projectId = current.projectId
+                val sourceXml = remember(projectId) { projectRepository.readSourceXml(project) }
+                val initialSession =
+                    remember(projectId) { TranslationProjectFileStore.loadSessionSnapshot(project) }
                 val controller =
-                    remember(projectId) {
+                    remember(projectId, sourceXml) {
                         editorControllerStore.getOrCreate(
                             key = projectId,
                             fileName = project.displayName,
                             filePath = "recent/$projectId",
-                            sourceLang = snap.defaultSourceLang,
-                            targetLang = snap.defaultTargetLang,
-                            sourceXml = project.sourceXml,
-                            initialSession = project.editorSession,
+                            sourceLang = project.sourceLang,
+                            targetLang = project.targetLang,
+                            sourceXml = sourceXml,
+                            initialSession = initialSession,
+                            resultPath = project.resultPath,
                             onStateChange = { editorState ->
                                 projectRepository.syncEditorState(projectId, editorState)
+                            },
+                            onPersistResult = {
+                                editorControllerStore.currentState(projectId)?.let { editorState ->
+                                    projectRepository.syncEditorState(projectId, editorState)
+                                }
                             },
                         )
                     }

@@ -21,15 +21,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import `fun`.abbas.android_res_translator.ui.XmlFileAccess
-import `fun`.abbas.android_res_translator.ui.screens.main.InMemoryRecentXmlProjectRepository
-import `fun`.abbas.android_res_translator.ui.screens.main.recentProjectFromXml
+import `fun`.abbas.android_res_translator.ui.screens.main.TranslationProjectRepository
 import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
 import kotlin.random.Random
 
 @Composable
 fun FileBrowserScreen(
     store: FileBrowserStore,
-    recentProjects: InMemoryRecentXmlProjectRepository,
+    recentProjects: TranslationProjectRepository,
+    defaultSourceLang: String,
+    defaultTargetLang: String,
     xmlFileAccess: XmlFileAccess,
     onOpenFile: (FileBrowserItem.XmlFile) -> Unit,
     showCompactSearch: Boolean,
@@ -77,7 +78,12 @@ fun FileBrowserScreen(
                 xmlFileAccess.launchPickXml { result ->
                     result.onSuccess { xml ->
                         val name = "strings_${Random.nextInt(100_000)}.xml"
-                        recentProjects.addOrUpdate(recentProjectFromXml(xml, name))
+                        recentProjects.addOrUpdateFromUpload(
+                            sourceXml = xml,
+                            displayName = name,
+                            sourceLang = defaultSourceLang,
+                            targetLang = defaultTargetLang,
+                        )
                         if (state.pathSegments != listOf("src", "commonMain", "resources")) {
                             store.navigateToResources()
                         } else {

@@ -2,7 +2,7 @@ package `fun`.abbas.android_res_translator.ui.screens.files
 
 import `fun`.abbas.android_res_translator.core.ports.FileTreePort
 import `fun`.abbas.android_res_translator.core.ports.FileNode
-import `fun`.abbas.android_res_translator.ui.screens.main.InMemoryRecentXmlProjectRepository
+import `fun`.abbas.android_res_translator.ui.screens.main.TranslationProjectRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 
 class FileBrowserStore(
     private val fileTree: FileTreePort,
-    private val recentProjects: InMemoryRecentXmlProjectRepository,
+    private val recentProjects: TranslationProjectRepository,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default),
 ) {
     private var pathSegments: List<String> = emptyList()
@@ -77,7 +77,7 @@ class FileBrowserStore(
         return try {
             fileTree.readUtf8(id)
         } catch (_: Exception) {
-            recentProjects.projects.value.find { it.id == id }?.sourceXml
+            recentProjects.projects.value.find { it.id == id }?.let { recentProjects.readSourceXml(it) }
                 ?: mockXmlById[id]
                 ?: ""
         }
@@ -120,8 +120,8 @@ class FileBrowserStore(
                         name = project.displayName,
                         path = "src/commonMain/resources/${project.displayName}",
                         versionLabel = "v1.0",
-                        sizeLabel = if (project.sourceXml.isNotBlank()) formatSize(project.sourceXml.length.toLong()) else "${project.totalKeys} keys",
-                        xmlContent = project.sourceXml
+                        sizeLabel = "${project.totalKeys} keys",
+                        xmlContent = null,
                     )
                 }
                 allItems = allItems + uploaded
