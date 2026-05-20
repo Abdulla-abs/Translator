@@ -1,0 +1,69 @@
+package `fun`.abbas.android_res_translator.ui.screens.fileeditor
+
+import `fun`.abbas.android_res_translator.ui.TranslationServices
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+
+/**
+ * 按 [key] 缓存 [FileEditorController]，离开 [FileEditorScreen] 后翻译任务继续在 [scope] 中运行。
+ */
+class FileEditorControllerStore(
+    private val services: TranslationServices,
+    private val scope: CoroutineScope,
+) {
+    private val controllers = mutableMapOf<String, FileEditorController>()
+    private val stateObservers = mutableMapOf<String, Job>()
+
+    fun getOrCreate(
+        key: String,
+        fileName: String,
+        filePath: String,
+        sourceLang: String,
+        targetLang: String,
+        sourceXml: String,
+        initialSession: FileEditorSessionSnapshot? = null,
+        onStateChange: ((FileEditorState) -> Unit)? = null,
+    ): FileEditorController {
+        val existing = controllers[key]
+        if (existing != null) {
+            if (onStateChange != null) {
+                observeState(key, existing, onStateChange)
+            }
+            return existing
+        }
+        val controller =
+            FileEditorController(
+                services = services,
+                scope = scope,
+                fileName = fileName,
+                filePath = filePath,
+                sourceLang = sourceLang,
+                targetLang = targetLang,
+                sourceXml = sourceXml,
+                initialSession = initialSession,
+            )
+        controllers[key] = controller
+        if (onStateChange != null) {
+            observeState(key, controller, onStateChange)
+        }
+        return controller
+    }
+
+    private fun observeState(
+        key: String,
+        controller: FileEditorController,
+        onStateChange: (FileEditorState) -> Unit,
+    ) {
+        stateObservers[key]?.cancel()
+        stateObservers[key] =
+            scope.launch {
+                controller.state.collect { onStateChange(it) }
+            }
+    }
+
+    fun release(key: String) {
+        stateObservers.remove(key)?.cancel()
+        controllers.remove(key)?.dispose()
+    }
+}

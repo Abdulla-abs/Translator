@@ -1,6 +1,8 @@
 package `fun`.abbas.android_res_translator.ui.screens.fileeditor
 
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -19,121 +22,148 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.input.pointer.pointerInput
+import `fun`.abbas.android_res_translator.ui.navigation.AppBackHandler
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.ui.unit.dp
-import `fun`.abbas.android_res_translator.ui.TranslationServices
 import `fun`.abbas.android_res_translator.ui.XmlFileAccess
 import `fun`.abbas.android_res_translator.ui.components.AppGlassCard
 import `fun`.abbas.android_res_translator.ui.theme.AppCodeSmallTextStyle
+import `fun`.abbas.android_res_translator.ui.theme.AppControlShape
 import `fun`.abbas.android_res_translator.ui.theme.AppLabelCapsTextStyle
 import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
 import kotlinx.coroutines.launch
 
 @Composable
 fun FileEditorScreen(
-    fileName: String,
-    filePath: String,
-    sourceXml: String,
-    sourceLang: String,
-    targetLang: String,
-    services: TranslationServices,
+    controller: FileEditorController,
     xmlFileAccess: XmlFileAccess,
     onBack: () -> Unit,
+    onEditorStateChange: ((FileEditorState) -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val scope = rememberCoroutineScope()
-    val controller =
-        remember(fileName, sourceXml) {
-            FileEditorController(
-                services = services,
-                scope = scope,
-                fileName = fileName,
-                filePath = filePath,
-                sourceLang = sourceLang,
-                targetLang = targetLang,
-                sourceXml = sourceXml,
-            )
-        }
     val state by controller.state.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val focusManager = LocalFocusManager.current
+
+    AppBackHandler(onBack = onBack)
+
+    fun onExportClick() {
+        if (state.isExportReady) {
+            val xml = controller.exportXml()
+            xmlFileAccess.launchSaveXml(xml, state.fileName) { ok ->
+                controller.setExportMessage(if (ok) "已导出" else "导出取消")
+            }
+        } else {
+            scope.launch {
+                snackbarHostState.showSnackbar("翻译尚未完成，无法导出")
+            }
+        }
+    }
 
     DisposableEffect(controller) {
-        onDispose { controller.dispose() }
-    }
-
-    LaunchedEffect(controller, state.totalCount) {
-        if (state.totalCount > 0 && !state.isRunning && state.completedCount == 0) {
-            controller.startTranslationIfIdle()
+        onDispose {
+            // 离开页面不取消翻译；仅同步最新状态供首页卡片展示。
+            onEditorStateChange?.invoke(controller.state.value)
         }
     }
 
-    Column(modifier = modifier.fillMaxSize()) {
-        FileEditorHeader(
-            fileName = state.fileName,
-            filePath = state.filePath,
-            sourceLang = state.sourceLang,
-            targetLang = state.targetLang,
-            onBack = onBack,
-        )
-        Column(
+    LaunchedEffect(
+        state.entries,
+        state.completedCount,
+        state.isRunning,
+        state.isPaused,
+        state.keyFilter,
+        state.errorCount,
+    ) {
+        onEditorStateChange?.invoke(state)
+    }
+
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = MaterialTheme.colorScheme.background,
+    ) { innerPadding ->
+        Box(
             modifier =
                 Modifier
-                    .weight(1f)
-                    .verticalScroll(rememberScrollState())
-                    .padding(AppSpacing.gutter),
-            verticalArrangement = Arrangement.spacedBy(AppSpacing.lg),
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .pointerInput(Unit) {
+                        detectTapGestures(onTap = { focusManager.clearFocus() })
+                    },
         ) {
-            BoxWithConstraints(Modifier.fillMaxWidth()) {
-                if (maxWidth >= 700.dp) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
-                        FileEditorProgressCard(state, Modifier.weight(2f))
-                        FileEditorActionsCard(
-                            state = state,
-                            onTranslationAction = controller::onTranslationButtonClick,
-                            onExport = {
-                                val xml = controller.exportXml()
-                                xmlFileAccess.launchSaveXml(xml, state.fileName) { ok ->
-                                    controller.setExportMessage(if (ok) "已导出" else "导出取消")
-                                }
-                            },
-                            modifier = Modifier.weight(1f),
-                        )
+            Column(Modifier.fillMaxSize()) {
+                FileEditorHeader(
+                    fileName = state.fileName,
+                    filePath = state.filePath,
+                    sourceLang = state.sourceLang,
+                    targetLang = state.targetLang,
+                    onBack = onBack,
+                )
+                Column(
+                    modifier =
+                        Modifier
+                            .weight(1f)
+                            .verticalScroll(rememberScrollState())
+                            .padding(AppSpacing.gutter),
+                    verticalArrangement = Arrangement.spacedBy(AppSpacing.lg),
+                ) {
+                    BoxWithConstraints(Modifier.fillMaxWidth()) {
+                        if (maxWidth >= 700.dp) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
+                                FileEditorProgressCard(state, Modifier.weight(2f))
+                                FileEditorActionsCard(
+                                    state = state,
+                                    onTranslationAction = controller::onTranslationButtonClick,
+                                    onExportClick = { onExportClick() },
+                                    modifier = Modifier.weight(1f),
+                                )
+                            }
+                        } else {
+                            Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
+                                FileEditorProgressCard(state)
+                                FileEditorActionsCard(
+                                    state = state,
+                                    onTranslationAction = controller::onTranslationButtonClick,
+                                    onExportClick = { onExportClick() },
+                                )
+                            }
+                        }
                     }
-                } else {
-                    Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
-                        FileEditorProgressCard(state)
-                        FileEditorActionsCard(
-                            state = state,
-                            onTranslationAction = controller::onTranslationButtonClick,
-                            onExport = {
-                                val xml = controller.exportXml()
-                                xmlFileAccess.launchSaveXml(xml, state.fileName) { ok ->
-                                    controller.setExportMessage(if (ok) "已导出" else "导出取消")
-                                }
-                            },
-                        )
+                    state.exportMessage?.let {
+                        Text(it, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodyMedium)
                     }
+                    XmlEntriesSection(
+                        state = state,
+                        onKeyFilterChange = controller::setKeyFilter,
+                        onRetry = controller::retryEntry,
+                    )
+                    Spacer(Modifier.height(72.dp))
                 }
             }
-            state.exportMessage?.let {
-                Text(it, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodyMedium)
-            }
-            XmlEntriesSection(
-                state = state,
-                onKeyFilterChange = controller::setKeyFilter,
-                onRetry = controller::retryEntry,
-            )
-            Spacer(Modifier.height(72.dp))
         }
     }
 }
@@ -178,21 +208,53 @@ private fun XmlEntriesSection(
     onRetry: (String) -> Unit,
 ) {
     val colors = MaterialTheme.colorScheme
+    var isSearchFocused by remember { mutableStateOf(false) }
+    val searchExpanded = isSearchFocused
+
     AppGlassCard {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(bottom = AppSpacing.sm),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
+        BoxWithConstraints(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = AppSpacing.sm),
         ) {
-            Text("XML ENTRIES", style = AppLabelCapsTextStyle, color = colors.onSurfaceVariant)
-            OutlinedTextField(
-                value = state.keyFilter,
-                onValueChange = onKeyFilterChange,
-                placeholder = { Text("Filter keys...") },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                singleLine = true,
-                modifier = Modifier.widthIn(max = 220.dp),
+            val collapsedWidth = minOf(220.dp, maxWidth)
+            val searchWidth by animateDpAsState(
+                targetValue = if (searchExpanded) maxWidth else collapsedWidth,
+                animationSpec = tween(durationMillis = 280),
+                label = "xmlEntriesSearchWidth",
             )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (!searchExpanded) {
+                    Text(
+                        "XML ENTRIES",
+                        style = AppLabelCapsTextStyle,
+                        color = colors.onSurfaceVariant,
+                        modifier = Modifier.weight(1f).padding(end = AppSpacing.sm),
+                    )
+                }
+                OutlinedTextField(
+                    value = state.keyFilter,
+                    onValueChange = onKeyFilterChange,
+                    placeholder = { Text("Filter keys...") },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                    singleLine = true,
+                    shape = AppControlShape,
+                    colors =
+                        OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = colors.secondary,
+                            unfocusedBorderColor = colors.outlineVariant,
+                            cursorColor = colors.secondary,
+                        ),
+                    modifier =
+                        Modifier
+                            .width(searchWidth)
+                            .onFocusChanged { isSearchFocused = it.isFocused },
+                )
+            }
         }
         HorizontalDivider(color = colors.outlineVariant)
         if (state.filteredEntries.isEmpty()) {

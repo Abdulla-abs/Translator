@@ -79,21 +79,23 @@ fun FileProjectsSection(
                     else -> 1
                 }
             val cells = projects.map { Cell.Project(it) } + Cell.Upload
-            cells.chunked(columns).forEach { row ->
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(bottom = AppSpacing.md),
-                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
-                ) {
-                    row.forEach { cell ->
-                        BoxWithConstraints(modifier = Modifier.weight(1f)) {
-                            when (cell) {
-                                is Cell.Project -> FileProjectCard(cell.project, onClick = { onProjectClick(cell.project) })
-                                Cell.Upload -> UploadXmlCard(onClick = onUploadClick)
+            Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
+                cells.chunked(columns).forEach { row ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
+                    ) {
+                        row.forEach { cell ->
+                            BoxWithConstraints(modifier = Modifier.weight(1f)) {
+                                when (cell) {
+                                    is Cell.Project -> FileProjectCard(cell.project, onClick = { onProjectClick(cell.project) })
+                                    Cell.Upload -> UploadXmlCard(onClick = onUploadClick)
+                                }
                             }
                         }
-                    }
-                    repeat(columns - row.size) {
-                        Spacer(Modifier.weight(1f))
+                        repeat(columns - row.size) {
+                            Spacer(Modifier.weight(1f))
+                        }
                     }
                 }
             }

@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.dp
 fun FileEditorActionsCard(
     state: FileEditorState,
     onTranslationAction: () -> Unit,
-    onExport: () -> Unit,
+    onExportClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = MaterialTheme.colorScheme
@@ -76,14 +76,36 @@ fun FileEditorActionsCard(
                 Icon(pauseIcon, contentDescription = null)
                 Text(pauseLabel, modifier = Modifier.padding(start = AppSpacing.sm))
             }
-            OutlinedButton(
-                onClick = onExport,
-                modifier = Modifier.fillMaxWidth(),
-                shape = AppControlShape,
-                border = BorderStroke(1.dp, colors.outlineVariant),
-            ) {
-                Icon(Icons.Default.Download, contentDescription = null)
-                Text("Export ${state.targetLang.uppercase()} XML", modifier = Modifier.padding(start = AppSpacing.sm))
+            if (state.isExportReady) {
+                Button(
+                    onClick = onExportClick,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = AppControlShape,
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = colors.secondaryContainer,
+                            contentColor = colors.onSecondaryContainer,
+                        ),
+                ) {
+                    Icon(Icons.Default.Download, contentDescription = null)
+                    Text(
+                        "Export ${state.targetLang.uppercase()} XML",
+                        modifier = Modifier.padding(start = AppSpacing.sm),
+                    )
+                }
+            } else {
+                OutlinedButton(
+                    onClick = onExportClick,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = AppControlShape,
+                    border = BorderStroke(1.dp, colors.outlineVariant),
+                ) {
+                    Icon(Icons.Default.Download, contentDescription = null)
+                    Text(
+                        "Export ${state.targetLang.uppercase()} XML",
+                        modifier = Modifier.padding(start = AppSpacing.sm),
+                    )
+                }
             }
         }
     }

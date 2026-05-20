@@ -23,11 +23,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import `fun`.abbas.android_res_translator.ui.theme.AppCodeSmallTextStyle
 import `fun`.abbas.android_res_translator.ui.theme.AppControlShape
 import `fun`.abbas.android_res_translator.ui.theme.AppLabelCapsTextStyle
 import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
+
+/** 首版隐藏条目行操作按钮；保留实现供后续启用。 */
+private const val ShowEntryActionButtons = false
 
 @Composable
 fun XmlEntryRow(
@@ -45,8 +49,12 @@ fun XmlEntryRow(
                 .padding(AppSpacing.lg),
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Surface(
+                    modifier = Modifier.weight(1f),
                     shape = AppControlShape,
                     color = colors.secondaryContainer.copy(alpha = 0.2f),
                 ) {
@@ -54,10 +62,15 @@ fun XmlEntryRow(
                         entry.key,
                         style = AppCodeSmallTextStyle,
                         color = colors.secondary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.padding(horizontal = AppSpacing.sm, vertical = AppSpacing.xs),
                     )
                 }
-                EntryStatusChip(entry.status)
+                EntryStatusChip(
+                    status = entry.status,
+                    modifier = Modifier.padding(start = AppSpacing.sm),
+                )
             }
             BoxWithConstraints(modifier = Modifier.fillMaxWidth().padding(top = AppSpacing.md)) {
                 if (maxWidth >= 600.dp) {
@@ -78,23 +91,25 @@ fun XmlEntryRow(
                 }
             }
         }
-        Column {
-            when (entry.status) {
-                is EntryStatus.Error -> {
-                    IconButton(onClick = onRetry) {
-                        Icon(Icons.Default.Refresh, contentDescription = "重试", tint = colors.primary)
+        if (ShowEntryActionButtons) {
+            Column {
+                when (entry.status) {
+                    is EntryStatus.Error -> {
+                        IconButton(onClick = onRetry) {
+                            Icon(Icons.Default.Refresh, contentDescription = "重试", tint = colors.primary)
+                        }
+                        IconButton(onClick = { /* 首版不删除 */ }) {
+                            Icon(Icons.Default.DeleteOutline, contentDescription = "删除", tint = colors.onSurfaceVariant)
+                        }
                     }
-                    IconButton(onClick = { /* 首版不删除 */ }) {
-                        Icon(Icons.Default.DeleteOutline, contentDescription = "删除", tint = colors.onSurfaceVariant)
+                    is EntryStatus.Completed -> {
+                        IconButton(onClick = { /* 首版不编辑 */ }) {
+                            Icon(Icons.Default.Edit, contentDescription = "编辑", tint = colors.onSurfaceVariant)
+                        }
                     }
-                }
-                is EntryStatus.Completed -> {
-                    IconButton(onClick = { /* 首版不编辑 */ }) {
-                        Icon(Icons.Default.Edit, contentDescription = "编辑", tint = colors.onSurfaceVariant)
+                    else -> {
+                        Icon(Icons.Default.Edit, contentDescription = null, tint = colors.onSurfaceVariant.copy(alpha = 0.4f))
                     }
-                }
-                else -> {
-                    Icon(Icons.Default.Edit, contentDescription = null, tint = colors.onSurfaceVariant.copy(alpha = 0.4f))
                 }
             }
         }
@@ -102,7 +117,10 @@ fun XmlEntryRow(
 }
 
 @Composable
-private fun EntryStatusChip(status: EntryStatus) {
+private fun EntryStatusChip(
+    status: EntryStatus,
+    modifier: Modifier = Modifier,
+) {
     val colors = MaterialTheme.colorScheme
     val (label, icon, fg, bg) =
         when (status) {
@@ -115,13 +133,23 @@ private fun EntryStatusChip(status: EntryStatus) {
             is EntryStatus.Error ->
                 Quad("Error", Icons.Default.Error, colors.error, colors.error.copy(alpha = 0.1f))
         }
-    Surface(shape = AppControlShape, color = bg) {
+    Surface(
+        modifier = modifier,
+        shape = AppControlShape,
+        color = bg,
+    ) {
         Row(
             modifier = Modifier.padding(horizontal = AppSpacing.sm, vertical = AppSpacing.xs),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(icon, contentDescription = null, tint = fg, modifier = Modifier.padding(end = 4.dp))
-            Text(label, style = AppLabelCapsTextStyle, color = fg)
+            Text(
+                label,
+                style = AppLabelCapsTextStyle,
+                color = fg,
+                maxLines = 1,
+                softWrap = false,
+            )
         }
     }
 }

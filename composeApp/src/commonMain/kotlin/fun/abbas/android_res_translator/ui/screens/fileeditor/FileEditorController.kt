@@ -21,7 +21,8 @@ class FileEditorController(
     filePath: String,
     sourceLang: String,
     targetLang: String,
-    sourceXml: String,
+    private val sourceXml: String,
+    initialSession: FileEditorSessionSnapshot? = null,
 ) {
     private var parsedFile: StringResourceFile = StringResourceFile()
     private var translationJob: Job? = null
@@ -38,7 +39,26 @@ class FileEditorController(
     val state: StateFlow<FileEditorState> = _state.asStateFlow()
 
     init {
-        load(sourceXml)
+        if (initialSession != null && initialSession.entries.isNotEmpty()) {
+            restoreSession(initialSession)
+        } else {
+            load(sourceXml)
+        }
+    }
+
+    fun restoreSession(snapshot: FileEditorSessionSnapshot) {
+        parsedFile =
+            runCatching { StringsXmlCodec.parse(sourceXml) }
+                .getOrElse { StringResourceFile() }
+        _state.update {
+            it.copy(
+                entries = snapshot.entries,
+                keyFilter = snapshot.keyFilter,
+                isPaused = snapshot.isPaused,
+                isRunning = false,
+                exportMessage = null,
+            )
+        }
     }
 
     fun load(sourceXml: String) {
@@ -82,12 +102,6 @@ class FileEditorController(
                 _state.update { it.copy(isPaused = false) }
                 startTranslation()
             }
-        }
-    }
-
-    fun startTranslationIfIdle() {
-        if (!_state.value.isRunning && !_state.value.isPaused) {
-            startTranslation()
         }
     }
 

@@ -20,6 +20,20 @@ data class XmlEntryUi(
     val translatable: Boolean = true,
 )
 
+/** 可持久化的编辑器会话，用于首页卡片与再次进入编辑器时恢复。 */
+data class FileEditorSessionSnapshot(
+    val entries: List<XmlEntryUi>,
+    val keyFilter: String = "",
+    val isPaused: Boolean = false,
+)
+
+fun FileEditorState.toSessionSnapshot(): FileEditorSessionSnapshot =
+    FileEditorSessionSnapshot(
+        entries = entries,
+        keyFilter = keyFilter,
+        isPaused = isPaused,
+    )
+
 data class FileEditorState(
     val fileName: String = "strings.xml",
     val filePath: String = "/src/commonMain/resources/",
@@ -48,6 +62,10 @@ data class FileEditorState(
 
     val progressPercent: Float
         get() = if (totalCount == 0) 0f else completedCount.toFloat() / totalCount.toFloat()
+
+    /** 全部可翻译条目已完成且无错误，可高亮导出。 */
+    val isExportReady: Boolean
+        get() = totalCount > 0 && errorCount == 0 && completedCount >= totalCount && !isRunning
 
     val filteredEntries: List<XmlEntryUi>
         get() {

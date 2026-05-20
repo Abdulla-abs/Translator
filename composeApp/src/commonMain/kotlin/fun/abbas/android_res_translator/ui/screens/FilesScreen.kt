@@ -24,6 +24,7 @@ import `fun`.abbas.android_res_translator.core.ports.createDefaultFileTree
 import `fun`.abbas.android_res_translator.ui.TranslationServices
 import `fun`.abbas.android_res_translator.ui.XmlFileAccess
 import `fun`.abbas.android_res_translator.ui.files.WithFilePermissions
+import `fun`.abbas.android_res_translator.ui.screens.fileeditor.FileEditorControllerStore
 import `fun`.abbas.android_res_translator.ui.screens.fileeditor.FileEditorScreen
 import `fun`.abbas.android_res_translator.ui.screens.files.FileBrowserItem
 import `fun`.abbas.android_res_translator.ui.screens.files.FileBrowserScreen
@@ -39,6 +40,7 @@ fun FilesScreen(
     services: TranslationServices,
     xmlFileAccess: XmlFileAccess,
     projectRepository: InMemoryRecentXmlProjectRepository,
+    editorControllerStore: FileEditorControllerStore,
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
     modifier: Modifier = Modifier,
@@ -112,13 +114,20 @@ fun FilesScreen(
             }
             val content = fileContent
             if (content != null) {
+                val fileKey = "file:${current.file.id}"
+                val controller =
+                    remember(fileKey) {
+                        editorControllerStore.getOrCreate(
+                            key = fileKey,
+                            fileName = current.file.name,
+                            filePath = current.file.path,
+                            sourceLang = snap.defaultSourceLang,
+                            targetLang = snap.defaultTargetLang,
+                            sourceXml = content,
+                        )
+                    }
                 FileEditorScreen(
-                    fileName = current.file.name,
-                    filePath = current.file.path,
-                    sourceXml = content,
-                    sourceLang = snap.defaultSourceLang,
-                    targetLang = snap.defaultTargetLang,
-                    services = services,
+                    controller = controller,
                     xmlFileAccess = xmlFileAccess,
                     onBack = { mode = FilesUiMode.Browse },
                     modifier = modifier,

@@ -11,15 +11,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -31,7 +27,9 @@ import `fun`.abbas.android_res_translator.ui.screens.main.DashboardInsightSectio
 import `fun`.abbas.android_res_translator.ui.screens.main.FileProjectsSection
 import `fun`.abbas.android_res_translator.ui.screens.main.InMemoryRecentXmlProjectRepository
 import `fun`.abbas.android_res_translator.ui.screens.main.QuickTranslateSection
-import `fun`.abbas.android_res_translator.ui.screens.main.RecentXmlProject
+import `fun`.abbas.android_res_translator.ui.files.WithFilePermissions
+import `fun`.abbas.android_res_translator.ui.screens.fileeditor.FileEditorControllerStore
+import `fun`.abbas.android_res_translator.ui.screens.fileeditor.FileEditorScreen
 import `fun`.abbas.android_res_translator.ui.screens.main.recentProjectFromXml
 import `fun`.abbas.android_res_translator.ui.settings.AppSettingsRepository
 import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
@@ -42,13 +40,14 @@ fun MainDashboardScreen(
     services: TranslationServices,
     xmlFileAccess: XmlFileAccess,
     projectRepository: InMemoryRecentXmlProjectRepository,
+    editorControllerStore: FileEditorControllerStore,
     onNavigateToFiles: () -> Unit,
-    onOpenProject: (RecentXmlProject) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val snap by settings.snapshot.collectAsState()
     val scroll = rememberScrollState()
     var uploadCounter by remember { mutableIntStateOf(0) }
+    var mode by remember { mutableStateOf<DashboardUiMode>(DashboardUiMode.Home) }
 
     fun onUploadXml(xml: String) {
         uploadCounter += 1
@@ -56,9 +55,43 @@ fun MainDashboardScreen(
         projectRepository.addOrUpdate(recentProjectFromXml(xml, name))
     }
 
-    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
-        val showFab = maxWidth < 840.dp
+    val projects by projectRepository.projects.collectAsState()
 
+    WithFilePermissions {
+    when (val current = mode) {
+        is DashboardUiMode.Editor -> {
+            val project = projects.find { it.id == current.projectId }
+            if (project != null) {
+                val projectId = current.projectId
+                val controller =
+                    remember(projectId) {
+                        editorControllerStore.getOrCreate(
+                            key = projectId,
+                            fileName = project.displayName,
+                            filePath = "recent/$projectId",
+                            sourceLang = snap.defaultSourceLang,
+                            targetLang = snap.defaultTargetLang,
+                            sourceXml = project.sourceXml,
+                            initialSession = project.editorSession,
+                            onStateChange = { editorState ->
+                                projectRepository.syncEditorState(projectId, editorState)
+                            },
+                        )
+                    }
+                FileEditorScreen(
+                    controller = controller,
+                    xmlFileAccess = xmlFileAccess,
+                    onBack = { mode = DashboardUiMode.Home },
+                    onEditorStateChange = { editorState ->
+                        projectRepository.syncEditorState(projectId, editorState)
+                    },
+                    modifier = modifier,
+                )
+            }
+        }
+
+        DashboardUiMode.Home ->
+    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
             Column(
                 modifier =
@@ -83,26 +116,21 @@ fun MainDashboardScreen(
                             result.onSuccess(::onUploadXml)
                         }
                     },
-                    onProjectClick = onOpenProject,
+                    onProjectClick = { mode = DashboardUiMode.Editor(it.id) },
                 )
                 DashboardInsightSection()
-                Spacer(Modifier.height(if (showFab) 88.dp else AppSpacing.lg))
-            }
-
-            if (showFab) {
-                FloatingActionButton(
-                    onClick = {
-                        xmlFileAccess.launchPickXml { result ->
-                            result.onSuccess(::onUploadXml)
-                        }
-                    },
-                    modifier = Modifier.align(Alignment.BottomEnd).padding(AppSpacing.margin),
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = "Upload XML")
-                }
+                Spacer(Modifier.height(AppSpacing.lg))
             }
         }
     }
+    }
+    }
+}
+
+private sealed interface DashboardUiMode {
+    data object Home : DashboardUiMode
+
+    data class Editor(
+        val projectId: String,
+    ) : DashboardUiMode
 }

@@ -42,6 +42,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,6 +62,7 @@ import `fun`.abbas.android_res_translator.ui.screens.AboutScreen
 import `fun`.abbas.android_res_translator.ui.screens.FilesScreen
 import `fun`.abbas.android_res_translator.ui.screens.MainDashboardScreen
 import `fun`.abbas.android_res_translator.ui.screens.SettingsScreen
+import `fun`.abbas.android_res_translator.ui.screens.fileeditor.FileEditorControllerStore
 import `fun`.abbas.android_res_translator.ui.screens.main.InMemoryRecentXmlProjectRepository
 import `fun`.abbas.android_res_translator.ui.settings.AppSettingsRepository
 import `fun`.abbas.android_res_translator.ui.settings.RepositorySecretsProvider
@@ -93,6 +95,11 @@ fun AppRoot(settingsRepository: AppSettingsRepository = createAppSettingsReposit
     }
     val xmlFileAccess = rememberXmlFileAccess()
     val projectRepository = remember { InMemoryRecentXmlProjectRepository() }
+    val editorScope = rememberCoroutineScope()
+    val editorControllerStore =
+        remember(services, editorScope) {
+            FileEditorControllerStore(services, editorScope)
+        }
     val backStack = rememberNavBackStack(rootNavSavedStateConfig, RootRoute.Translate)
     var filesSearchQuery by remember { mutableStateOf("") }
     val currentRoute = backStack.lastOrNull()
@@ -219,8 +226,8 @@ fun AppRoot(settingsRepository: AppSettingsRepository = createAppSettingsReposit
                                         services = services,
                                         xmlFileAccess = xmlFileAccess,
                                         projectRepository = projectRepository,
+                                        editorControllerStore = editorControllerStore,
                                         onNavigateToFiles = { navigateToRootTab(backStack, RootRoute.Files) },
-                                        onOpenProject = { navigateToRootTab(backStack, RootRoute.Files) },
                                     )
                                 }
                                 entry<RootRoute.Files> {
@@ -229,6 +236,7 @@ fun AppRoot(settingsRepository: AppSettingsRepository = createAppSettingsReposit
                                         services = services,
                                         xmlFileAccess = xmlFileAccess,
                                         projectRepository = projectRepository,
+                                        editorControllerStore = editorControllerStore,
                                         searchQuery = filesSearchQuery,
                                         onSearchQueryChange = { filesSearchQuery = it },
                                     )
@@ -326,8 +334,8 @@ fun AppRoot(settingsRepository: AppSettingsRepository = createAppSettingsReposit
                                     services = services,
                                     xmlFileAccess = xmlFileAccess,
                                     projectRepository = projectRepository,
+                                    editorControllerStore = editorControllerStore,
                                     onNavigateToFiles = { navigateToRootTab(backStack, RootRoute.Files) },
-                                    onOpenProject = { navigateToRootTab(backStack, RootRoute.Files) },
                                 )
                             }
                             entry<RootRoute.Files> {
@@ -336,6 +344,7 @@ fun AppRoot(settingsRepository: AppSettingsRepository = createAppSettingsReposit
                                     services = services,
                                     xmlFileAccess = xmlFileAccess,
                                     projectRepository = projectRepository,
+                                    editorControllerStore = editorControllerStore,
                                     searchQuery = filesSearchQuery,
                                     onSearchQueryChange = { filesSearchQuery = it },
                                 )
