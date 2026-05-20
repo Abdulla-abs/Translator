@@ -53,6 +53,8 @@ kotlin {
             implementation(libs.xmlutil.serialization)
             implementation(libs.kotlincrypto.md)
             implementation(libs.kotlincrypto.sha2)
+            implementation(libs.jetbrains.navigation3.ui)
+            implementation(compose.materialIconsExtended)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -80,6 +82,10 @@ android {
     namespace = "fun.abbas.android_res_translator"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         applicationId = "fun.abbas.android_res_translator"
         minSdk = libs.versions.android.minSdk.get().toInt()
@@ -101,6 +107,7 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
 }
 
 dependencies {

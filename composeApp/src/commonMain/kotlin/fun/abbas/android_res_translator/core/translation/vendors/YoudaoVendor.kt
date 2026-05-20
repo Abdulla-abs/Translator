@@ -28,9 +28,34 @@ class YoudaoVendor(
     override val name: String = "youdao"
 
     override fun supportsTargetLanguage(isoOrAndroidCode: String): Boolean =
-        isoOrAndroidCode.isNotBlank()
+        YoudaoLanguageSupport.supportsTargetLanguage(isoOrAndroidCode)
+
+    override fun supportsLanguagePair(
+        sourceLanguage: String,
+        targetLanguage: String,
+    ): Boolean = YoudaoLanguageSupport.supportsLanguagePair(sourceLanguage, targetLanguage)
 
     override suspend fun translate(request: TranslationRequest): TranslationOutcome {
+        val youdaoFrom =
+            YoudaoLanguageSupport.normalizeToYoudaoCode(request.sourceLanguage)
+        val youdaoTo =
+            YoudaoLanguageSupport.normalizeToYoudaoCode(request.targetLanguage)
+        if (youdaoFrom == null || youdaoTo == null) {
+            return TranslationOutcome.Err(
+                TranslationFailure.VendorRejected(
+                    name,
+                    "unsupported language code: source=${request.sourceLanguage}, target=${request.targetLanguage}",
+                ),
+            )
+        }
+        if (!YoudaoLanguageSupport.supportsLanguagePair(request.sourceLanguage, request.targetLanguage)) {
+            return TranslationOutcome.Err(
+                TranslationFailure.VendorRejected(
+                    name,
+                    "unsupported language pair: $youdaoFrom -> $youdaoTo",
+                ),
+            )
+        }
         val appKey = secrets["youdao.appId"]
             ?: return TranslationOutcome.Err(
                 TranslationFailure.VendorRejected(name, "missing youdao.appId"),
@@ -57,8 +82,8 @@ class YoudaoVendor(
                     formParameters =
                         Parameters.build {
                             append("q", q)
-                            append("from", request.sourceLanguage)
-                            append("to", request.targetLanguage)
+                            append("from", youdaoFrom)
+                            append("to", youdaoTo)
                             append("appKey", appKey)
                             append("salt", salt)
                             append("sign", sign)

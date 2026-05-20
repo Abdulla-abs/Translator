@@ -10,5 +10,6 @@ class TranslatePlainTextUseCase(
         text: String,
         from: String,
         to: String,
-    ) = orchestrator.translate(TranslationRequest(text, from, to))
+        preferredVendorName: String? = null,
+    ) = orchestrator.translate(TranslationRequest(text, from, to), preferredVendorName)
 }

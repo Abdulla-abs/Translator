@@ -31,9 +31,36 @@ class HuoshanVendor(
     override val name: String = "huoshan"
 
     override fun supportsTargetLanguage(isoOrAndroidCode: String): Boolean =
-        isoOrAndroidCode.isNotBlank()
+        HuoshanLanguageSupport.supportsTargetLanguage(isoOrAndroidCode)
+
+    override fun supportsLanguagePair(
+        sourceLanguage: String,
+        targetLanguage: String,
+    ): Boolean = HuoshanLanguageSupport.supportsLanguagePair(sourceLanguage, targetLanguage)
 
     override suspend fun translate(request: TranslationRequest): TranslationOutcome {
+        val huoshanSource =
+            request.sourceLanguage.trim().takeIf { it.isNotEmpty() }?.let {
+                HuoshanLanguageSupport.normalizeToHuoshanCode(it)
+            }
+        val huoshanTarget =
+            HuoshanLanguageSupport.normalizeToHuoshanCode(request.targetLanguage)
+        if (huoshanTarget == null) {
+            return TranslationOutcome.Err(
+                TranslationFailure.VendorRejected(
+                    name,
+                    "unsupported language code: source=${request.sourceLanguage}, target=${request.targetLanguage}",
+                ),
+            )
+        }
+        if (!HuoshanLanguageSupport.supportsLanguagePair(request.sourceLanguage, request.targetLanguage)) {
+            return TranslationOutcome.Err(
+                TranslationFailure.VendorRejected(
+                    name,
+                    "unsupported language pair: ${huoshanSource ?: "auto"} -> $huoshanTarget",
+                ),
+            )
+        }
         val accessKeyId =
             secrets["huoshan.accessKeyID"]
                 ?: return TranslationOutcome.Err(
@@ -46,8 +73,8 @@ class HuoshanVendor(
                 )
         val bodyModel =
             HuoshanTranslateBody(
-                sourceLanguage = request.sourceLanguage.ifBlank { null },
-                targetLanguage = request.targetLanguage,
+                sourceLanguage = huoshanSource,
+                targetLanguage = huoshanTarget,
                 textList = listOf(request.sourceText),
             )
         val bodyBytes = json.encodeToString(HuoshanTranslateBody.serializer(), bodyModel).encodeToByteArray()

@@ -13,9 +13,46 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class HuoshanVendorTest {
+    @Test
+    fun supportsLanguagePairFromWhitelist() {
+        val vendor =
+            HuoshanVendor(
+                httpClient = HttpClient(MockEngine { respond("") }),
+                secrets = FakeSecretsProvider(emptyMap()),
+            )
+        assertTrue(vendor.supportsLanguagePair("zh", "en"))
+        assertFalse(vendor.supportsLanguagePair("sk", "en"))
+        assertFalse(vendor.supportsLanguagePair("bo", "en"))
+    }
+
+    @Test
+    fun rejectsUnsupportedPairBeforeNetwork() = runTest {
+        val engine = MockEngine { error("should not call API") }
+        val vendor =
+            HuoshanVendor(
+                httpClient = HttpClient(engine),
+                secrets =
+                    FakeSecretsProvider(
+                        mapOf(
+                            "huoshan.accessKeyID" to "AK",
+                            "huoshan.secretAccessKey" to "SK",
+                        ),
+                    ),
+            )
+        val r =
+            vendor.translate(
+                TranslationRequest(sourceText = "test", sourceLanguage = "sk", targetLanguage = "en"),
+            )
+        assertNull(r.successOrNull())
+        assertNotNull(r.failureOrNull())
+    }
+
     @Test
     fun parsesSuccessTranslationList() = runTest {
         val engine =

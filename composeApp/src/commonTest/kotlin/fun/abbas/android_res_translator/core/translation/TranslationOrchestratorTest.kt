@@ -11,6 +11,11 @@ private class StubVendor(
 ) : TranslationVendor {
     override fun supportsTargetLanguage(isoOrAndroidCode: String): Boolean = supports
 
+    override fun supportsLanguagePair(
+        sourceLanguage: String,
+        targetLanguage: String,
+    ): Boolean = supports
+
     override suspend fun translate(request: TranslationRequest): TranslationOutcome = outcome
 }
 
@@ -30,5 +35,35 @@ class TranslationOrchestratorTest {
         )
         val r = chain.translate(TranslationRequest("你好", "zh", "en"))
         assertEquals("X", r.successOrNull()!!.translatedText)
+    }
+
+    @Test
+    fun prefersSelectedVendorFirst() = runTest {
+        var firstCalled: String? = null
+        val vendorA =
+            object : TranslationVendor {
+                override val name = "a"
+
+                override fun supportsTargetLanguage(isoOrAndroidCode: String) = true
+
+                override suspend fun translate(request: TranslationRequest): TranslationOutcome {
+                    firstCalled = name
+                    return TranslationOutcome.Err(TranslationFailure.VendorRejected(name, "fail"))
+                }
+            }
+        val vendorB =
+            object : TranslationVendor {
+                override val name = "b"
+
+                override fun supportsTargetLanguage(isoOrAndroidCode: String) = true
+
+                override suspend fun translate(request: TranslationRequest): TranslationOutcome {
+                    firstCalled = name
+                    return TranslationOutcome.Ok(TranslationSuccess("OK", "zh", "en"))
+                }
+            }
+        val chain = TranslationOrchestrator(listOf(vendorA, vendorB))
+        chain.translate(TranslationRequest("x", "zh", "en"), preferredVendorName = "b")
+        assertEquals("b", firstCalled)
     }
 }

@@ -13,9 +13,43 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class BaiduVendorTest {
+    @Test
+    fun supportsLanguagePairFromWhitelist() {
+        val vendor =
+            BaiduVendor(
+                httpClient = HttpClient(MockEngine { respond("") }),
+                secrets = FakeSecretsProvider(emptyMap()),
+            )
+        assertTrue(vendor.supportsLanguagePair("zh", "en"))
+        assertTrue(vendor.supportsLanguagePair("auto", "en"))
+        assertFalse(vendor.supportsTargetLanguage("invalid"))
+    }
+
+    @Test
+    fun rejectsUnsupportedPairBeforeNetwork() = runTest {
+        val engine = MockEngine { error("should not call API") }
+        val vendor =
+            BaiduVendor(
+                httpClient = HttpClient(engine),
+                secrets =
+                    FakeSecretsProvider(
+                        mapOf(
+                            "baidu.appId" to "id",
+                            "baidu.secretKey" to "sec",
+                        ),
+                    ),
+            )
+        val r = vendor.translate(TranslationRequest("x", "zh", "not-a-lang"))
+        assertNull(r.successOrNull())
+        assertNotNull(r.failureOrNull())
+    }
+
     @Test
     fun parsesSuccessJson() = runTest {
         val engine =

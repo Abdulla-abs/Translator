@@ -28,9 +28,34 @@ class TencentVendor(
     override val name: String = "tencent"
 
     override fun supportsTargetLanguage(isoOrAndroidCode: String): Boolean =
-        isoOrAndroidCode.isNotBlank()
+        TencentLanguageSupport.supportsTargetLanguage(isoOrAndroidCode)
+
+    override fun supportsLanguagePair(
+        sourceLanguage: String,
+        targetLanguage: String,
+    ): Boolean = TencentLanguageSupport.supportsLanguagePair(sourceLanguage, targetLanguage)
 
     override suspend fun translate(request: TranslationRequest): TranslationOutcome {
+        val tencentSource =
+            TencentLanguageSupport.normalizeToTencentCode(request.sourceLanguage)
+        val tencentTarget =
+            TencentLanguageSupport.normalizeToTencentCode(request.targetLanguage)
+        if (tencentSource == null || tencentTarget == null) {
+            return TranslationOutcome.Err(
+                TranslationFailure.VendorRejected(
+                    name,
+                    "unsupported language code: source=${request.sourceLanguage}, target=${request.targetLanguage}",
+                ),
+            )
+        }
+        if (!TencentLanguageSupport.supportsLanguagePair(request.sourceLanguage, request.targetLanguage)) {
+            return TranslationOutcome.Err(
+                TranslationFailure.VendorRejected(
+                    name,
+                    "unsupported language pair: $tencentSource -> $tencentTarget",
+                ),
+            )
+        }
         val secretId =
             secrets["tencent.secretId"]
                 ?: return TranslationOutcome.Err(
@@ -45,8 +70,8 @@ class TencentVendor(
         val bodyModel =
             TextTranslateBody(
                 sourceText = request.sourceText,
-                source = request.sourceLanguage,
-                target = request.targetLanguage,
+                source = tencentSource,
+                target = tencentTarget,
                 projectId = 0L,
             )
         val bodyBytes = json.encodeToString(TextTranslateBody.serializer(), bodyModel).encodeToByteArray()

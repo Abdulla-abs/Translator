@@ -26,9 +26,32 @@ class BaiduVendor(
     override val name: String = "baidu"
 
     override fun supportsTargetLanguage(isoOrAndroidCode: String): Boolean =
-        isoOrAndroidCode.isNotBlank()
+        BaiduLanguageSupport.supportsTargetLanguage(isoOrAndroidCode)
+
+    override fun supportsLanguagePair(
+        sourceLanguage: String,
+        targetLanguage: String,
+    ): Boolean = BaiduLanguageSupport.supportsLanguagePair(sourceLanguage, targetLanguage)
 
     override suspend fun translate(request: TranslationRequest): TranslationOutcome {
+        val baiduFrom = BaiduLanguageSupport.normalizeToBaiduCode(request.sourceLanguage)
+        val baiduTo = BaiduLanguageSupport.normalizeToBaiduCode(request.targetLanguage)
+        if (baiduFrom == null || baiduTo == null) {
+            return TranslationOutcome.Err(
+                TranslationFailure.VendorRejected(
+                    name,
+                    "unsupported language code: source=${request.sourceLanguage}, target=${request.targetLanguage}",
+                ),
+            )
+        }
+        if (!BaiduLanguageSupport.supportsLanguagePair(request.sourceLanguage, request.targetLanguage)) {
+            return TranslationOutcome.Err(
+                TranslationFailure.VendorRejected(
+                    name,
+                    "unsupported language pair: $baiduFrom -> $baiduTo",
+                ),
+            )
+        }
         val appId = secrets["baidu.appId"]
             ?: return TranslationOutcome.Err(
                 TranslationFailure.VendorRejected(name, "missing baidu.appId"),
@@ -45,8 +68,8 @@ class BaiduVendor(
                 url = BAIDU_TRANSLATE_URL,
                 formParameters = Parameters.build {
                     append("q", request.sourceText)
-                    append("from", request.sourceLanguage)
-                    append("to", request.targetLanguage)
+                    append("from", baiduFrom)
+                    append("to", baiduTo)
                     append("appid", appId)
                     append("salt", salt.toString())
                     append("sign", sign)

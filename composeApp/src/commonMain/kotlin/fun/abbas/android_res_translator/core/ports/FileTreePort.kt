@@ -7,9 +7,14 @@ data class FileNode(
     val name: String,
     val path: String,
     val isDirectory: Boolean,
+    val size: Long = 0L,
 )
 
 interface FileTreePort {
+    fun getRootPath(): String
+    
+    fun setRootPath(path: String)
+
     suspend fun listChildren(dir: String): List<FileNode>
 
     suspend fun readUtf8(path: String): String
@@ -19,3 +24,5 @@ interface FileTreePort {
         content: String,
     )
 }
+
+expect fun createDefaultFileTree(): FileTreePort

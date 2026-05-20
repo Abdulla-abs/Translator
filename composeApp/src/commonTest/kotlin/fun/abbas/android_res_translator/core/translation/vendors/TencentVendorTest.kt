@@ -13,9 +13,47 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class TencentVendorTest {
+    @Test
+    fun supportsLanguagePairFromWhitelist() {
+        val vendor =
+            TencentVendor(
+                httpClient = HttpClient(MockEngine { respond("") }),
+                secrets = FakeSecretsProvider(emptyMap()),
+            )
+        assertTrue(vendor.supportsLanguagePair("zh", "en"))
+        assertTrue(vendor.supportsLanguagePair("zh-rTW", "zh"))
+        assertFalse(vendor.supportsLanguagePair("hi", "zh"))
+        assertFalse(vendor.supportsTargetLanguage("unknown"))
+    }
+
+    @Test
+    fun rejectsUnsupportedPairBeforeNetwork() = runTest {
+        val engine = MockEngine { error("should not call API") }
+        val vendor =
+            TencentVendor(
+                httpClient = HttpClient(engine),
+                secrets =
+                    FakeSecretsProvider(
+                        mapOf(
+                            "tencent.secretId" to "AK",
+                            "tencent.secretKey" to "SK",
+                        ),
+                    ),
+            )
+        val r =
+            vendor.translate(
+                TranslationRequest(sourceText = "test", sourceLanguage = "hi", targetLanguage = "zh"),
+            )
+        assertNull(r.successOrNull())
+        assertNotNull(r.failureOrNull())
+    }
+
     @Test
     fun postsToTmtHostWithJsonBody() = runTest {
         var sawHost: String? = null

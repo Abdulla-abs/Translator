@@ -1,7 +1,5 @@
 package `fun`.abbas.android_res_translator.core.ports
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 /**
  * 测试用内存文件树：路径统一为 `/` 分隔、无首尾斜杠（根目录用 `res` 这类单段名）。
@@ -10,16 +8,22 @@ class InMemoryFileTree(
     initialDirs: Collection<String> = emptyList(),
     initialFiles: Map<String, String> = emptyMap(),
 ) : FileTreePort {
+    private var rootPath = "res"
     private val directories = mutableSetOf<String>()
     private val files = mutableMapOf<String, String>()
+
+    override fun getRootPath(): String = rootPath
+
+    override fun setRootPath(path: String) {
+        rootPath = path
+    }
 
     init {
         initialDirs.forEach { mkdirAll(it) }
         initialFiles.forEach { (p, c) -> putFileInternal(p, c) }
     }
 
-    override suspend fun listChildren(dir: String): List<FileNode> =
-        withContext(Dispatchers.Default) {
+    override suspend fun listChildren(dir: String): List<FileNode> {
             val d = normalize(dir)
             val prefix = if (d.isEmpty()) "" else "$d/"
             val seen = mutableSetOf<String>()
@@ -40,19 +44,18 @@ class InMemoryFileTree(
                 if (!seen.add(childPath)) continue
                 out.add(FileNode(name = rel, path = childPath, isDirectory = false))
             }
-            out.sortedBy { it.name }
-        }
+            return out.sortedBy { it.name }
+    }
 
-    override suspend fun readUtf8(path: String): String =
-        withContext(Dispatchers.Default) {
+    override suspend fun readUtf8(path: String): String {
             val p = normalize(path)
-            files[p] ?: error("file not found: $p")
-        }
+            return files[p] ?: error("file not found: $p")
+    }
 
     override suspend fun writeUtf8(
         path: String,
         content: String,
-    ) = withContext(Dispatchers.Default) { putFileInternal(path, content) }
+    ) { putFileInternal(path, content) }
 
     private fun putFileInternal(
         rawPath: String,
