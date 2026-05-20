@@ -26,7 +26,12 @@ fun RecentXmlProject.withEditorState(state: FileEditorState): RecentXmlProject {
         progressPercent = if (total == 0) 0f else done.toFloat() / total.toFloat(),
         translatedKeys = done,
         totalKeys = total,
-        isComplete = total > 0 && done >= total && state.errorCount == 0,
+        isComplete =
+            total > 0 &&
+                !state.isRunning &&
+                state.pendingCount == 0 &&
+                state.errorCount == 0 &&
+                done >= total,
         modifiedAtEpochMs = currentEpochMillis(),
     )
 }

@@ -2,7 +2,9 @@ package `fun`.abbas.android_res_translator.ui.screens.fileeditor
 
 import `fun`.abbas.android_res_translator.core.resources.model.StringResourceFile
 import `fun`.abbas.android_res_translator.core.resources.xml.StringsXmlCodec
+import `fun`.abbas.android_res_translator.core.translation.TranslationDebugLog
 import `fun`.abbas.android_res_translator.core.translation.TranslationOutcome
+import `fun`.abbas.android_res_translator.core.translation.vendors.LingvanexLanguageSupport
 import `fun`.abbas.android_res_translator.persistence.TranslationProjectFileStore
 import `fun`.abbas.android_res_translator.ui.TranslationServices
 import `fun`.abbas.android_res_translator.ui.toUserMessage
@@ -31,6 +33,16 @@ class FileEditorController(
     private var parsedFile: StringResourceFile = StringResourceFile()
     private var translationJob: Job? = null
     private var flushResultJob: Job? = null
+    private var preferredVendorName: String? = null
+
+    /** 与设置/首页所选翻译引擎一致，见 [ActiveTranslationEngine.vendorName]。 */
+    fun setPreferredVendorName(vendorName: String?) {
+        preferredVendorName = vendorName?.trim()?.takeIf { it.isNotEmpty() }
+        TranslationDebugLog.log(
+            "FileEditor",
+            "setPreferredVendorName=$preferredVendorName",
+        )
+    }
 
     private val _state =
         MutableStateFlow(
@@ -57,7 +69,14 @@ class FileEditorController(
                 .getOrElse { StringResourceFile() }
         _state.update {
             it.copy(
-                entries = snapshot.entries,
+                entries =
+                    snapshot.entries.map { entry ->
+                        if (entry.status is EntryStatus.Translating) {
+                            entry.copy(status = EntryStatus.Pending)
+                        } else {
+                            entry
+                        }
+                    },
                 keyFilter = snapshot.keyFilter,
                 isPaused = snapshot.isPaused,
                 isRunning = false,
@@ -158,7 +177,9 @@ class FileEditorController(
                 val ui = current.entries.find { it.key == entry.name }
                 val text =
                     when {
-                        ui?.targetText?.isNotBlank() == true -> ui.targetText.orEmpty()
+                        !entry.translatable -> entry.value
+                        ui?.status is EntryStatus.Completed && ui.targetText?.isNotBlank() == true ->
+                            ui.targetText.orEmpty()
                         else -> entry.value
                     }
                 entry.copy(value = text)
@@ -179,7 +200,15 @@ class FileEditorController(
         translationJob =
             scope.launch {
                 _state.update { it.copy(isRunning = true, isPaused = false) }
-                val port = services.segmentPort()
+                val from = _state.value.sourceLang
+                val to = _state.value.targetLang
+                TranslationDebugLog.log(
+                    "FileEditor",
+                    "startTranslation preferredVendor=$preferredVendorName " +
+                        "langs=$from->$to lingvanexTargetApi=${LingvanexLanguageSupport.resolveApiTargetCode(to)} " +
+                        "lingvanexSupportsTarget=${LingvanexLanguageSupport.supportsAppTargetLanguage(to)}",
+                )
+                val port = services.segmentPort(preferredVendorName)
                 try {
                     while (true) {
                         if (_state.value.isPaused) break

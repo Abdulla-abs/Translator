@@ -8,7 +8,7 @@ import kotlin.test.assertTrue
 
 class LanguagePickerCatalogTest {
     @Test
-    fun resolvesPreferredEngineOverFirstConfigured() {
+    fun resolvesPreferredEngineWhenConfigured() {
         val snap =
             AppSettingsSnapshot(
                 huoshanAccessKeyId = "a",
@@ -18,6 +18,16 @@ class LanguagePickerCatalogTest {
                 preferredTranslationEngine = ActiveTranslationEngine.Youdao,
             )
         assertEquals(ActiveTranslationEngine.Youdao, LanguagePickerCatalog.resolveSelectedEngine(snap))
+    }
+
+    @Test
+    fun fallsBackWhenPreferredEngineNotConfigured() {
+        val snap =
+            AppSettingsSnapshot(
+                lingvanexToken = "token",
+                preferredTranslationEngine = ActiveTranslationEngine.Tencent,
+            )
+        assertEquals(ActiveTranslationEngine.Lingvanex, LanguagePickerCatalog.resolveSelectedEngine(snap))
     }
 
     @Test

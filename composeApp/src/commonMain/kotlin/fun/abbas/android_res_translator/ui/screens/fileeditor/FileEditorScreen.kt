@@ -75,6 +75,7 @@ fun FileEditorScreen(
     val focusManager = LocalFocusManager.current
     var editingLang by remember { mutableStateOf<LangEdit?>(null) }
     var showRetranslateConfirm by remember { mutableStateOf(false) }
+    var showExportWithErrorsConfirm by remember { mutableStateOf(false) }
 
     val onTranslationAction: () -> Unit = {
         if (state.isExportReady && !state.isRunning && !state.isPaused) {
@@ -86,16 +87,25 @@ fun FileEditorScreen(
 
     AppBackHandler(onBack = onBack)
 
+    LaunchedEffect(selectedEngine) {
+        controller.setPreferredVendorName(selectedEngine?.vendorName)
+    }
+
+    fun performExport() {
+        val xml = controller.exportXml()
+        xmlFileAccess.launchSaveXml(xml, state.fileName) { ok ->
+            controller.setExportMessage(if (ok) "已导出" else "导出取消")
+        }
+    }
+
     fun onExportClick() {
-        if (state.isExportReady) {
-            val xml = controller.exportXml()
-            xmlFileAccess.launchSaveXml(xml, state.fileName) { ok ->
-                controller.setExportMessage(if (ok) "已导出" else "导出取消")
-            }
-        } else {
-            scope.launch {
-                snackbarHostState.showSnackbar("翻译尚未完成，无法导出")
-            }
+        when {
+            state.errorCount > 0 -> showExportWithErrorsConfirm = true
+            state.isExportReady -> performExport()
+            else ->
+                scope.launch {
+                    snackbarHostState.showSnackbar("翻译尚未完成，无法导出")
+                }
         }
     }
 
@@ -228,6 +238,34 @@ fun FileEditorScreen(
                         sourceLang = state.sourceLang,
                         targetLang = code,
                     )
+                }
+            },
+        )
+    }
+
+    if (showExportWithErrorsConfirm) {
+        AlertDialog(
+            onDismissRequest = { showExportWithErrorsConfirm = false },
+            title = { Text("导出确认") },
+            text = {
+                Text(
+                    "文件中有 ${state.errorCount} 条翻译失败。继续导出时，失败条目将保留源语言文本。是否继续导出？",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showExportWithErrorsConfirm = false
+                        performExport()
+                    },
+                ) {
+                    Text("继续导出")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showExportWithErrorsConfirm = false }) {
+                    Text("取消")
                 }
             },
         )

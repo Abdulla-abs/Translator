@@ -1,6 +1,7 @@
 package `fun`.abbas.android_res_translator.core.translation.vendors
 
 import `fun`.abbas.android_res_translator.core.ports.SecretsProvider
+import `fun`.abbas.android_res_translator.core.translation.TranslationDebugLog
 import `fun`.abbas.android_res_translator.core.translation.TranslationFailure
 import `fun`.abbas.android_res_translator.core.translation.TranslationOutcome
 import `fun`.abbas.android_res_translator.core.translation.TranslationRequest
@@ -20,7 +21,7 @@ import kotlinx.serialization.json.JsonNull
 
 /**
  * Lingvanex / Backenster 翻译 API（与旧工程 `LingvanexTranslation` 对齐）。
- * 目标语言码使用 [ANDROID_TO_LINGVANEX_TARGET]；未配置的目标语言视为本厂商不支持。
+ * 目标语言码见 [LingvanexLanguageSupport]；未解析出的目标语言视为本厂商不支持。
  */
 class LingvanexVendor(
     private val httpClient: HttpClient,
@@ -30,7 +31,7 @@ class LingvanexVendor(
     override val name: String = "lingvanex"
 
     override fun supportsTargetLanguage(isoOrAndroidCode: String): Boolean =
-        ANDROID_TO_LINGVANEX_TARGET.containsKey(isoOrAndroidCode)
+        LingvanexLanguageSupport.supportsAppTargetLanguage(isoOrAndroidCode)
 
     override suspend fun translate(request: TranslationRequest): TranslationOutcome {
         val token = secrets["lingvanex.token"]
@@ -38,13 +39,23 @@ class LingvanexVendor(
                 TranslationFailure.VendorRejected(name, "missing lingvanex.token"),
             )
         val mappedTo =
-            ANDROID_TO_LINGVANEX_TARGET[request.targetLanguage]
-                ?: return TranslationOutcome.Err(
-                    TranslationFailure.VendorRejected(
-                        name,
-                        "unsupported target language: ${request.targetLanguage}",
-                    ),
-                )
+            LingvanexLanguageSupport.resolveApiTargetCode(request.targetLanguage)
+                ?: run {
+                    TranslationDebugLog.log(
+                        "Lingvanex",
+                        "unsupported target=${request.targetLanguage} (no API mapping)",
+                    )
+                    return TranslationOutcome.Err(
+                        TranslationFailure.VendorRejected(
+                            name,
+                            "unsupported target language: ${request.targetLanguage}",
+                        ),
+                    )
+                }
+        TranslationDebugLog.log(
+            "Lingvanex",
+            "target=${request.targetLanguage} -> apiTo=$mappedTo tokenConfigured=${token.isNotBlank()}",
+        )
         return try {
             val resp =
                 httpClient.post(LINGVANEX_TRANSLATE_URL) {
@@ -83,34 +94,7 @@ class LingvanexVendor(
     }
 
     private companion object {
-        const val LINGVANEX_TRANSLATE_URL = "https://api-b2b.backenster.com/b1/api/v3/translate"
-
-        /** 与旧工程 `LingvanexTranslation.initSupportComparisonTable` 一致（key = 安卓侧语言/地区码）。 */
-        val ANDROID_TO_LINGVANEX_TARGET: Map<String, String> =
-            mapOf(
-                "en" to "en_US",
-                "cs" to "cs_CZ",
-                "de" to "de_DE",
-                "el" to "el_GR",
-                "fi" to "fi_FI",
-                "fr" to "fr_CA",
-                "hr" to "hr_HR",
-                "in" to "id_ID",
-                "it" to "it_IT",
-                "ja" to "ja_JP",
-                "ko" to "ko_KR",
-                "nl" to "nl_NL",
-                "pt" to "pt_PT",
-                "ro-rRO" to "ro_RO",
-                "ru" to "ru_RU",
-                "sl" to "sl_SI",
-                "sr" to "sr-Cyrl_RS",
-                "zh" to "zh-Hans_CN",
-                "zh-rHK" to "zh-Hant_TW",
-                "zh-rMO" to "zh-Hant_TW",
-                "zh-rTW" to "zh-Hant_TW",
-                "es" to "es_ES",
-            )
+        private const val LINGVANEX_TRANSLATE_URL = "https://api-b2b.backenster.com/b1/api/v3/translate"
     }
 }
 

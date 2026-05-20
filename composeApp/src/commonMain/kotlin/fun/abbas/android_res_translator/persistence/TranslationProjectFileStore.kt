@@ -69,19 +69,8 @@ object TranslationProjectFileStore {
 
     fun readSourceXml(project: RecentXmlProject): String = readTextFile(project.sourcePath)
 
-    fun loadSessionSnapshot(project: RecentXmlProject): FileEditorSessionSnapshot? {
-        if (!fileExists(project.sourcePath)) return null
-        val sourceXml = readTextFile(project.sourcePath)
-        val resultXml =
-            if (fileExists(project.resultPath)) {
-                readTextFile(project.resultPath)
-            } else {
-                buildResultTemplate(sourceXml)
-            }
-        return FileEditorSessionSnapshot(
-            entries = buildEntriesFromXml(sourceXml, resultXml),
-        )
-    }
+    fun loadSessionSnapshot(project: RecentXmlProject): FileEditorSessionSnapshot? =
+        loadSessionSnapshotInternal(project)
 
     fun writeResultFromEditorState(
         resultPath: String,
@@ -91,6 +80,15 @@ object TranslationProjectFileStore {
         val parsed = StringsXmlCodec.parse(sourceXml)
         val merged = mergeTranslatedStrings(parsed, state)
         writeTextFileAtomic(resultPath, StringsXmlCodec.serialize(merged))
+        projectIdFromResultPath(resultPath)?.let { projectId ->
+            writeSessionFromEditorState(projectId, state)
+        }
+    }
+
+    fun projectIdFromResultPath(resultPath: String): String? {
+        val suffix = "/$RESULT_FILE"
+        if (!resultPath.endsWith(suffix)) return null
+        return resultPath.removeSuffix(suffix).substringAfterLast('/').takeIf { it.isNotEmpty() }
     }
 
     /** 可译条目译文置空，非 translatable 保留原文，作为 result 初始模板。 */
@@ -128,13 +126,17 @@ object TranslationProjectFileStore {
             val status =
                 when {
                     !entry.translatable -> EntryStatus.Completed
-                    translated.isNotBlank() -> EntryStatus.Completed
+                    translated.isNotBlank() && translated != entry.value -> EntryStatus.Completed
                     else -> EntryStatus.Pending
                 }
+            val isRealTranslation =
+                entry.translatable &&
+                    translated.isNotBlank() &&
+                    translated != entry.value
             XmlEntryUi(
                 key = entry.name,
                 sourceText = entry.value,
-                targetText = if (translated.isBlank()) null else translated,
+                targetText = if (isRealTranslation) translated else null,
                 status = status,
                 translatable = entry.translatable,
             )
@@ -150,9 +152,10 @@ object TranslationProjectFileStore {
                 val ui = state.entries.find { it.key == entry.name }
                 val text =
                     when {
-                        ui?.targetText?.isNotBlank() == true -> ui.targetText.orEmpty()
                         !entry.translatable -> entry.value
-                        else -> entry.value
+                        ui?.status is EntryStatus.Completed && ui.targetText?.isNotBlank() == true ->
+                            ui.targetText.orEmpty()
+                        else -> ""
                     }
                 entry.copy(value = text)
             }

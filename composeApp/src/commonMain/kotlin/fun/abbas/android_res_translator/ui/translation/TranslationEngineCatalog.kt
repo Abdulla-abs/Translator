@@ -42,10 +42,13 @@ object TranslationEngineCatalog {
             )
         }
 
-    /** 用户首选引擎；未设置或未配置时回退到链上首个已配置引擎。 */
+    /** 用户首选引擎（须已配置密钥）；否则回退到链上首个已配置引擎。 */
     fun resolveSelectedEngine(snapshot: AppSettingsSnapshot): ActiveTranslationEngine? {
         val preferred = snapshot.preferredTranslationEngine
-        if (preferred != null) return preferred
+        if (preferred != null) {
+            if (isConfigured(snapshot, preferred)) return preferred
+            return allEngines.firstOrNull { isConfigured(snapshot, it) }
+        }
         return allEngines.firstOrNull { isConfigured(snapshot, it) }
     }
 }

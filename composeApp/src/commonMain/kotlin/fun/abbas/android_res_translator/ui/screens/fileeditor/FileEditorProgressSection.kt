@@ -58,6 +58,9 @@ fun FileEditorProgressCard(
             StatColumn("Total", state.totalCount.toString())
             StatColumn("Translated", state.completedCount.toString(), colors.primary)
             StatColumn("Pending", state.pendingCount.toString(), colors.tertiary)
+            if (state.errorCount > 0) {
+                StatColumn("Error", state.errorCount.toString(), colors.error)
+            }
         }
         Row(
             modifier = Modifier.fillMaxWidth().padding(top = AppSpacing.md),

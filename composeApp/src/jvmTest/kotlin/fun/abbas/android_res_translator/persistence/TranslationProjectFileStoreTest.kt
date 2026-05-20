@@ -64,6 +64,26 @@ class TranslationProjectFileStoreTest {
         assertEquals("你好", appName.targetText)
     }
 
+    @Test
+    fun buildEntries_doesNotTreatSourceCopyAsTranslated() {
+        val project =
+            TranslationProjectFileStore.createProjectFromUpload(
+                sourceXml = SAMPLE_XML,
+                displayName = "strings.xml",
+                sourceLang = "en",
+                targetLang = "zh",
+            )
+        writeTextFileAtomic(project.resultPath, SAMPLE_XML)
+        val entries =
+            TranslationProjectFileStore.buildEntriesFromXml(
+                readTextFile(project.sourcePath),
+                SAMPLE_XML,
+            )
+        val appName = entries.single { it.key == "app_name" }
+        assertEquals(EntryStatus.Pending, appName.status)
+        assertEquals(null, appName.targetText)
+    }
+
     companion object {
         private val SAMPLE_XML =
             """

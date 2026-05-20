@@ -2,6 +2,7 @@ package `fun`.abbas.android_res_translator.ui.translation
 
 import `fun`.abbas.android_res_translator.core.translation.vendors.BaiduLanguageSupport
 import `fun`.abbas.android_res_translator.core.translation.vendors.HuoshanLanguageSupport
+import `fun`.abbas.android_res_translator.core.translation.vendors.LingvanexLanguageSupport
 import `fun`.abbas.android_res_translator.core.translation.vendors.TencentLanguageSupport
 import `fun`.abbas.android_res_translator.core.translation.vendors.YoudaoLanguageSupport
 import `fun`.abbas.android_res_translator.ui.screens.main.formatLanguageLabel
@@ -74,17 +75,18 @@ object LanguagePickerCatalog {
 
     private fun lingvanexOptions(otherLang: String): List<LanguagePickerOption> {
         val other = otherLang.trim()
-        return LINGVANEX_ANDROID_CODES
-            .filter { it != other }
-            .map { toOption(it) }
+        val apiOther = LingvanexLanguageSupport.resolveApiTargetCode(other)
+        return LingvanexLanguageSupport.supportedAppCodes
+            .filter { code ->
+                when {
+                    apiOther != null ->
+                        LingvanexLanguageSupport.resolveApiTargetCode(code) != apiOther
+                    else -> !code.equals(other, ignoreCase = true)
+                }
+            }
+            .map { code -> toOption(code) }
             .sortedBy { it.label }
     }
-
-    private val LINGVANEX_ANDROID_CODES: Set<String> =
-        setOf(
-            "en", "cs", "de", "el", "fi", "fr", "hr", "in", "it", "ja", "ko", "nl", "pt",
-            "ro-rRO", "ru", "sl", "sr", "zh", "zh-rHK", "zh-rMO", "zh-rTW", "es",
-        )
 
     private fun tencentSourceOptions(currentTarget: String): List<LanguagePickerOption> {
         val target = currentTarget.trim()

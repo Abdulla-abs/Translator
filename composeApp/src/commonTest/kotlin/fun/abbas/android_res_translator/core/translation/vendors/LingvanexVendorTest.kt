@@ -30,6 +30,8 @@ class LingvanexVendorTest {
         val v = LingvanexVendor(client, FakeSecretsProvider(mapOf("lingvanex.token" to "t")))
         assertTrue(v.supportsTargetLanguage("en"))
         assertTrue(v.supportsTargetLanguage("zh"))
+        assertTrue(v.supportsTargetLanguage("zh-CN"))
+        assertTrue(v.supportsTargetLanguage("pa"))
         assertFalse(v.supportsTargetLanguage("unknown-locale"))
     }
 

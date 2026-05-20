@@ -11,14 +11,49 @@ class TranslationOrchestrator(
         request: TranslationRequest,
         preferredVendorName: String? = null,
     ): TranslationOutcome {
+        val ordered = orderedVendors(preferredVendorName)
+        TranslationDebugLog.log(
+            "Orchestrator",
+            "translate from=${request.sourceLanguage} to=${request.targetLanguage} " +
+                "preferred=${preferredVendorName ?: "(none)"} chain=${ordered.map { it.name }}",
+        )
+        val preferredKey = preferredVendorName?.trim()?.takeIf { it.isNotEmpty() }
         var lastFailure: TranslationFailure? = null
-        for (v in orderedVendors(preferredVendorName)) {
-            if (!v.supportsLanguagePair(request.sourceLanguage, request.targetLanguage)) continue
+        for (v in ordered) {
+            val supports = v.supportsLanguagePair(request.sourceLanguage, request.targetLanguage)
+            if (!supports) {
+                TranslationDebugLog.log(
+                    "Orchestrator",
+                    "skip ${v.name}: supportsLanguagePair=false for ${request.sourceLanguage}->${request.targetLanguage}",
+                )
+                continue
+            }
+            TranslationDebugLog.log("Orchestrator", "try ${v.name} ...")
             when (val o = v.translate(request)) {
-                is TranslationOutcome.Ok -> return o
-                is TranslationOutcome.Err -> lastFailure = o.failure
+                is TranslationOutcome.Ok -> {
+                    TranslationDebugLog.log("Orchestrator", "ok ${v.name}")
+                    return o
+                }
+                is TranslationOutcome.Err -> {
+                    lastFailure = o.failure
+                    TranslationDebugLog.log(
+                        "Orchestrator",
+                        "err ${v.name}: ${o.failure}",
+                    )
+                    if (preferredKey != null && v.name == preferredKey) {
+                        TranslationDebugLog.log(
+                            "Orchestrator",
+                            "stop: preferred vendor $preferredKey failed, not trying fallbacks",
+                        )
+                        return TranslationOutcome.Err(o.failure)
+                    }
+                }
             }
         }
+        TranslationDebugLog.log(
+            "Orchestrator",
+            "all vendors failed; lastFailure=$lastFailure",
+        )
         return TranslationOutcome.Err(
             lastFailure ?: TranslationFailure.NoVendorForTarget(request.targetLanguage),
         )
