@@ -38,6 +38,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -96,7 +97,9 @@ fun AppRoot(settingsRepository: AppSettingsRepository = createAppSettingsReposit
     var filesSearchQuery by remember { mutableStateOf("") }
     val currentRoute = backStack.lastOrNull()
 
-    AppTheme {
+    // 使用 StateFlow 专用 collectAsState（勿传 Flow 的 initial = 空快照，否则首帧与部分平台下订阅行为异常）
+    val snap by settingsRepository.snapshot.collectAsState()
+    AppTheme(appearance = snap.appAppearance) {
         val colors = MaterialTheme.colorScheme
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val isDesktop = maxWidth >= 768.dp

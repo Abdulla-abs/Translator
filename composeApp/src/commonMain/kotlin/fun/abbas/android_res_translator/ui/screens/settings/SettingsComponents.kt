@@ -46,6 +46,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import `fun`.abbas.android_res_translator.ui.components.AppGlassCard
+import `fun`.abbas.android_res_translator.ui.settings.AppAppearance
 import `fun`.abbas.android_res_translator.ui.settings.AppSettingsSnapshot
 import `fun`.abbas.android_res_translator.ui.settings.ConsumerMode
 import `fun`.abbas.android_res_translator.ui.theme.AppLabelCapsTextStyle
@@ -259,6 +260,8 @@ fun SettingsKeyField(
 fun SettingsStrategiesCard(
     draft: AppSettingsSnapshot,
     onDraft: (AppSettingsSnapshot) -> Unit,
+    /** 主题切换立即落库，使 [AppRoot] 中 AppTheme 能读到新 snapshot（无需再点 Save）。 */
+    onAppearancePersist: (AppSettingsSnapshot) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val colors = MaterialTheme.colorScheme
@@ -286,6 +289,15 @@ fun SettingsStrategiesCard(
                         fontWeight = FontWeight.Bold,
                     )
                 }
+
+                AppearanceThemeRow(
+                    selected = draft.appAppearance,
+                    onSelect = { appearance ->
+                        val next = draft.copy(appAppearance = appearance)
+                        onDraft(next)
+                        onAppearancePersist(next)
+                    },
+                )
 
                 MergeStrategyRow(
                     selected = draft.consumerMode,
@@ -316,6 +328,76 @@ fun SettingsStrategiesCard(
             }
         }
     }
+}
+
+@Composable
+private fun AppearanceThemeRow(
+    selected: AppAppearance,
+    onSelect: (AppAppearance) -> Unit,
+) {
+    val colors = MaterialTheme.colorScheme
+    Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)) {
+        Text(
+            "Interface theme",
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Bold,
+        )
+        Text(
+            "Color palette only; typography and spacing stay as in the app design system.",
+            style = MaterialTheme.typography.bodySmall,
+            color = colors.onSurfaceVariant,
+        )
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(colors.surfaceContainerHighest.copy(alpha = 0.5f))
+                    .border(1.dp, colors.outlineVariant.copy(alpha = 0.35f), RoundedCornerShape(12.dp))
+                    .padding(6.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            val items =
+                listOf(
+                    AppAppearance.Classic to "Classic",
+                    AppAppearance.GeekAbyss to "Geek Abyss",
+                    AppAppearance.MinimalistPorcelain to "Porcelain",
+                )
+            items.forEach { (appearance, label) ->
+                val isSelected = selected == appearance
+                val bg = if (isSelected) colors.secondaryContainer else Color.Transparent
+                val fg = if (isSelected) colors.onSecondaryContainer else colors.onSurfaceVariant
+                Row(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(bg)
+                            .clickable { onSelect(appearance) }
+                            .padding(horizontal = AppSpacing.md, vertical = AppSpacing.sm),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = label,
+                        style = AppLabelCapsTextStyle.copy(fontWeight = FontWeight.Black),
+                        color = fg,
+                    )
+                    if (isSelected) {
+                        Text("✓", style = AppLabelCapsTextStyle, color = fg)
+                    }
+                }
+            }
+        }
+    }
+    Spacer(Modifier.height(AppSpacing.sm))
+    Box(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(colors.outlineVariant.copy(alpha = 0.25f)),
+    )
 }
 
 @Composable

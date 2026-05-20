@@ -31,6 +31,7 @@ private class IosAppSettingsRepository : AppSettingsRepository {
                 AppSettingsSnapshot.KEY_DEFAULT_SOURCE,
                 AppSettingsSnapshot.KEY_DEFAULT_TARGET,
                 AppSettingsSnapshot.KEY_PREFERRED_ENGINE,
+                AppSettingsSnapshot.KEY_APP_APPEARANCE,
                 AppSettingsSnapshot.KEY_CONSUMER_MODE,
                 AppSettingsSnapshot.KEY_FORCE_TRANSLATION,
             )

@@ -71,7 +71,13 @@ fun SettingsScreen(
         ) {
             SettingsPageHeader()
             SettingsProvidersGrid(sections = providers)
-            SettingsStrategiesCard(draft = draft, onDraft = { draft = it })
+            SettingsStrategiesCard(
+                draft = draft,
+                onDraft = { draft = it },
+                onAppearancePersist = { next ->
+                    scope.launch { repository.replaceAll(next) }
+                },
+            )
             SettingsDangerZone()
             Spacer(Modifier.height(120.dp))
         }

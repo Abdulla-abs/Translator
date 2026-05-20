@@ -130,7 +130,7 @@ fun buildProviderSections(
             title = "Volcengine (Huoshan)",
             icon = Icons.Default.SmartToy,
             iconTint = SettingsIconTint.Tertiary,
-            tag = "Recommended",
+            tag = "",
             spanFullWidth = true,
             fields =
                 listOf(

@@ -24,3 +24,12 @@ youdao.secretKey=YOUR_SECRET_KEY
 # --- 火山引擎（OpenAPI）---
 huoshan.accessKeyID=YOUR_ACCESS_KEY_ID
 huoshan.secretAccessKey=YOUR_SECRET_ACCESS_KEY
+
+# --- UI（可选，与 AppSettingsSnapshot 持久化键一致）---
+# ui.defaultSourceLang=en
+# ui.defaultTargetLang=zh
+# ui.preferredTranslationEngine=Huoshan
+# ui.appAppearance=Classic
+#   Classic | GeekAbyss | MinimalistPorcelain
+# ui.consumerMode=FILLED
+# ui.forceTranslation=false

@@ -3,7 +3,7 @@ package `fun`.abbas.android_res_translator.ui.theme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.ui.graphics.Color
 
-/** 将 [DESIGN.md](../../../DESIGN.md) YAML 中的十六进制色值转为 [Color]。 */
+/** 将设计文档 YAML 中的十六进制色值转为 [Color]。 */
 internal fun colorFromHex(hex: String): Color {
     val normalized = hex.removePrefix("#")
     require(normalized.length == 6) { "Expected #RRGGBB, got $hex" }

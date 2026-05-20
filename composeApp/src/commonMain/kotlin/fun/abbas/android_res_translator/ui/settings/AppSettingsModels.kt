@@ -25,6 +25,7 @@ data class AppSettingsSnapshot(
     val defaultSourceLang: String = "en",
     val defaultTargetLang: String = "zh",
     val preferredTranslationEngine: ActiveTranslationEngine? = null,
+    val appAppearance: AppAppearance = AppAppearance.Classic,
     val consumerMode: ConsumerMode = ConsumerMode.FILLED,
     val forceTranslation: Boolean = false,
 ) {
@@ -49,6 +50,7 @@ data class AppSettingsSnapshot(
         const val KEY_DEFAULT_SOURCE = "ui.defaultSourceLang"
         const val KEY_DEFAULT_TARGET = "ui.defaultTargetLang"
         const val KEY_PREFERRED_ENGINE = "ui.preferredTranslationEngine"
+        const val KEY_APP_APPEARANCE = "ui.appAppearance"
         const val KEY_CONSUMER_MODE = "ui.consumerMode"
         const val KEY_FORCE_TRANSLATION = "ui.forceTranslation"
 
@@ -68,6 +70,7 @@ data class AppSettingsSnapshot(
                 defaultTargetLang = map[KEY_DEFAULT_TARGET]?.takeIf { it.isNotBlank() } ?: "zh",
                 preferredTranslationEngine =
                     ActiveTranslationEngine.fromPersisted(map[KEY_PREFERRED_ENGINE]),
+                appAppearance = AppAppearance.fromPersisted(map[KEY_APP_APPEARANCE]),
                 consumerMode =
                     when (map[KEY_CONSUMER_MODE]?.uppercase()) {
                         "ALL_REPLACE" -> ConsumerMode.ALL_REPLACE
@@ -93,6 +96,7 @@ fun AppSettingsSnapshot.toPersistenceMap(): Map<String, String> =
         put(AppSettingsSnapshot.KEY_DEFAULT_SOURCE, defaultSourceLang)
         put(AppSettingsSnapshot.KEY_DEFAULT_TARGET, defaultTargetLang)
         preferredTranslationEngine?.let { put(AppSettingsSnapshot.KEY_PREFERRED_ENGINE, it.name) }
+        put(AppSettingsSnapshot.KEY_APP_APPEARANCE, appAppearance.name)
         put(AppSettingsSnapshot.KEY_CONSUMER_MODE, consumerMode.name)
         put(AppSettingsSnapshot.KEY_FORCE_TRANSLATION, forceTranslation.toString())
     }
