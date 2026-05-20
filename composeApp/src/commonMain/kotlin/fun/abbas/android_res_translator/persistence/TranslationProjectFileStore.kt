@@ -85,6 +85,10 @@ object TranslationProjectFileStore {
         }
     }
 
+    fun deleteProjectOnDisk(project: RecentXmlProject) {
+        deletePathRecursively(projectDirectory(project.id))
+    }
+
     fun projectIdFromResultPath(resultPath: String): String? {
         val suffix = "/$RESULT_FILE"
         if (!resultPath.endsWith(suffix)) return null

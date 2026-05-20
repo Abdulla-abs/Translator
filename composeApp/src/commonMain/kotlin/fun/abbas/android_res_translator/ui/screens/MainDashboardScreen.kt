@@ -134,6 +134,14 @@ fun MainDashboardScreen(
                         }
                     },
                     onProjectClick = { mode = DashboardUiMode.Editor(it.id) },
+                    onDeleteProject = { project ->
+                        editorControllerStore.release(project.id)
+                        projectRepository.deleteProject(project.id)
+                        val currentMode = mode
+                        if (currentMode is DashboardUiMode.Editor && currentMode.projectId == project.id) {
+                            mode = DashboardUiMode.Home
+                        }
+                    },
                 )
                 DashboardInsightSection()
                 Spacer(Modifier.height(AppSpacing.lg))

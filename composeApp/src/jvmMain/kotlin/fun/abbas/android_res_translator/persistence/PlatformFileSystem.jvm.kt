@@ -28,3 +28,9 @@ actual fun ensureDirectory(path: String) {
 }
 
 actual fun fileExists(path: String): Boolean = File(path).exists()
+
+actual fun deletePathRecursively(path: String): Boolean {
+    val root = File(path)
+    if (!root.exists()) return true
+    return root.walkBottomUp().fold(true) { ok, file -> file.delete() && ok }
+}

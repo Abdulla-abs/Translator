@@ -1,6 +1,7 @@
 package `fun`.abbas.android_res_translator.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,6 +36,7 @@ import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
 fun FileProjectCard(
     project: RecentXmlProject,
     onClick: () -> Unit,
+    onLongClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = MaterialTheme.colorScheme
@@ -44,8 +46,13 @@ fun FileProjectCard(
     val percentLabel = "${(project.progressPercent * 100).toInt()}%"
 
     Surface(
-        onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .combinedClickable(
+                    onClick = onClick,
+                    onLongClick = onLongClick,
+                ),
         shape = RoundedCornerShape(16.dp),
         color = colors.surfaceContainer.copy(alpha = 0.5f),
         tonalElevation = 0.dp,

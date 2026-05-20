@@ -11,3 +11,6 @@ expect fun writeTextFileAtomic(path: String, content: String)
 expect fun ensureDirectory(path: String)
 
 expect fun fileExists(path: String): Boolean
+
+/** 递归删除文件或目录；路径不存在时视为成功。 */
+expect fun deletePathRecursively(path: String): Boolean

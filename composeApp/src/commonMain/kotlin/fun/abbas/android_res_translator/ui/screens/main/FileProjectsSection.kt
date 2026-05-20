@@ -15,13 +15,18 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FolderZip
 import androidx.compose.material.icons.filled.UploadFile
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -42,9 +47,11 @@ fun FileProjectsSection(
     onViewAllClick: () -> Unit,
     onUploadClick: () -> Unit,
     onProjectClick: (RecentXmlProject) -> Unit,
+    onDeleteProject: (RecentXmlProject) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val projects by repository.projects.collectAsState()
+    var projectPendingDelete by remember { mutableStateOf<RecentXmlProject?>(null) }
 
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
         Row(
@@ -88,7 +95,12 @@ fun FileProjectsSection(
                         row.forEach { cell ->
                             BoxWithConstraints(modifier = Modifier.weight(1f)) {
                                 when (cell) {
-                                    is Cell.Project -> FileProjectCard(cell.project, onClick = { onProjectClick(cell.project) })
+                                    is Cell.Project ->
+                                        FileProjectCard(
+                                            project = cell.project,
+                                            onClick = { onProjectClick(cell.project) },
+                                            onLongClick = { projectPendingDelete = cell.project },
+                                        )
                                     Cell.Upload -> UploadXmlCard(onClick = onUploadClick)
                                 }
                             }
@@ -100,6 +112,34 @@ fun FileProjectsSection(
                 }
             }
         }
+    }
+
+    projectPendingDelete?.let { project ->
+        AlertDialog(
+            onDismissRequest = { projectPendingDelete = null },
+            title = { Text("删除项目") },
+            text = {
+                Text(
+                    "确定删除「${project.displayName}」？将移除本地翻译记录（source / result / session），且无法恢复。",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onDeleteProject(project)
+                        projectPendingDelete = null
+                    },
+                ) {
+                    Text("删除")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { projectPendingDelete = null }) {
+                    Text("取消")
+                }
+            },
+        )
     }
 }
 

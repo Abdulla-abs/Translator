@@ -32,6 +32,8 @@ interface TranslationProjectRepository {
     )
 
     fun readSourceXml(project: RecentXmlProject): String
+
+    fun deleteProject(projectId: String)
 }
 
 class InMemoryRecentXmlProjectRepository(
@@ -89,6 +91,11 @@ class InMemoryRecentXmlProjectRepository(
     }
 
     override fun readSourceXml(project: RecentXmlProject): String = sourceXmlById[project.id].orEmpty()
+
+    override fun deleteProject(projectId: String) {
+        sourceXmlById.remove(projectId)
+        _projects.value = _projects.value.filterNot { it.id == projectId }
+    }
 }
 
 class PersistentTranslationProjectRepository(
@@ -141,6 +148,17 @@ class PersistentTranslationProjectRepository(
 
     override fun readSourceXml(project: RecentXmlProject): String =
         TranslationProjectFileStore.readSourceXml(project)
+
+    override fun deleteProject(projectId: String) {
+        _projects.value.find { it.id == projectId }?.let { project ->
+            if (project.sourcePath.isNotBlank()) {
+                TranslationProjectFileStore.deleteProjectOnDisk(project)
+            }
+        }
+        val updated = _projects.value.filterNot { it.id == projectId }
+        _projects.value = updated
+        persistIndex(updated)
+    }
 
     private fun persistIndex(projects: List<RecentXmlProject>) {
         val index = TranslationProjectIndex(projects.map { it.toIndexEntry() })

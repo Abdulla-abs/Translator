@@ -55,3 +55,9 @@ actual fun ensureDirectory(path: String) {
 
 actual fun fileExists(path: String): Boolean =
     NSFileManager.defaultManager.fileExistsAtPath(path)
+
+actual fun deletePathRecursively(path: String): Boolean {
+    if (!fileExists(path)) return true
+    NSFileManager.defaultManager.removeItemAtPath(path, error = null)
+    return !fileExists(path)
+}
