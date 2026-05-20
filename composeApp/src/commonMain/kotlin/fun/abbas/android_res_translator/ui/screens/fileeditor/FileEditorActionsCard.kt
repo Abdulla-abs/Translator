@@ -23,6 +23,12 @@ import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Surface
 import androidx.compose.ui.unit.dp
+import androidrestranslator.composeapp.generated.resources.Res
+import androidrestranslator.composeapp.generated.resources.file_editor_export_xml
+import androidrestranslator.composeapp.generated.resources.file_editor_pause_translation
+import androidrestranslator.composeapp.generated.resources.file_editor_resume_translation
+import androidrestranslator.composeapp.generated.resources.file_editor_start_translation
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun FileEditorActionsCard(
@@ -44,9 +50,9 @@ fun FileEditorActionsCard(
         ) {
             val pauseLabel =
                 when {
-                    state.isPaused -> "Resume Translation"
-                    state.isRunning -> "Pause Translation"
-                    else -> "Start Translation"
+                    state.isPaused -> stringResource(Res.string.file_editor_resume_translation)
+                    state.isRunning -> stringResource(Res.string.file_editor_pause_translation)
+                    else -> stringResource(Res.string.file_editor_start_translation)
                 }
             val pauseIcon =
                 when {
@@ -89,7 +95,7 @@ fun FileEditorActionsCard(
                 ) {
                     Icon(Icons.Default.Download, contentDescription = null)
                     Text(
-                        "Export ${state.targetLang.uppercase()} XML",
+                        stringResource(Res.string.file_editor_export_xml, state.targetLang.uppercase()),
                         modifier = Modifier.padding(start = AppSpacing.sm),
                     )
                 }
@@ -102,7 +108,7 @@ fun FileEditorActionsCard(
                 ) {
                     Icon(Icons.Default.Download, contentDescription = null)
                     Text(
-                        "Export ${state.targetLang.uppercase()} XML",
+                        stringResource(Res.string.file_editor_export_xml, state.targetLang.uppercase()),
                         modifier = Modifier.padding(start = AppSpacing.sm),
                     )
                 }

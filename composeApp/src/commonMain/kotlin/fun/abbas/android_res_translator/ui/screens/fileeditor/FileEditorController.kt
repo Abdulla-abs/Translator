@@ -7,6 +7,7 @@ import `fun`.abbas.android_res_translator.core.translation.TranslationOutcome
 import `fun`.abbas.android_res_translator.core.translation.vendors.LingvanexLanguageSupport
 import `fun`.abbas.android_res_translator.persistence.TranslationProjectFileStore
 import `fun`.abbas.android_res_translator.ui.TranslationServices
+import `fun`.abbas.android_res_translator.ui.i18n.AppLocale
 import `fun`.abbas.android_res_translator.ui.toUserMessage
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -34,6 +35,7 @@ class FileEditorController(
     private var translationJob: Job? = null
     private var flushResultJob: Job? = null
     private var preferredVendorName: String? = null
+    var uiLocale: AppLocale = AppLocale.En
 
     /** 与设置/首页所选翻译引擎一致，见 [ActiveTranslationEngine.vendorName]。 */
     fun setPreferredVendorName(vendorName: String?) {
@@ -236,7 +238,7 @@ class FileEditorController(
                             is TranslationOutcome.Err ->
                                 updateEntry(nextKey) {
                                     it.copy(
-                                        status = EntryStatus.Error(outcome.failure.toUserMessage()),
+                                        status = EntryStatus.Error(outcome.failure.toUserMessage(uiLocale)),
                                         targetText = null,
                                     )
                                 }

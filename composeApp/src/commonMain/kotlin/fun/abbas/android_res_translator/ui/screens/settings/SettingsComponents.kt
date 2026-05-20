@@ -46,9 +46,36 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import `fun`.abbas.android_res_translator.ui.components.AppGlassCard
+import `fun`.abbas.android_res_translator.ui.i18n.AppLocale
 import `fun`.abbas.android_res_translator.ui.settings.AppAppearance
 import `fun`.abbas.android_res_translator.ui.settings.AppSettingsSnapshot
 import `fun`.abbas.android_res_translator.ui.settings.ConsumerMode
+import androidrestranslator.composeapp.generated.resources.Res
+import androidrestranslator.composeapp.generated.resources.common_saved
+import androidrestranslator.composeapp.generated.resources.settings_danger_message
+import androidrestranslator.composeapp.generated.resources.settings_danger_title
+import androidrestranslator.composeapp.generated.resources.settings_force_translate
+import androidrestranslator.composeapp.generated.resources.settings_force_translate_hint
+import androidrestranslator.composeapp.generated.resources.settings_interface_theme
+import androidrestranslator.composeapp.generated.resources.settings_interface_theme_hint
+import androidrestranslator.composeapp.generated.resources.settings_localization_defaults
+import androidrestranslator.composeapp.generated.resources.settings_merge_incremental
+import androidrestranslator.composeapp.generated.resources.settings_merge_overwrite
+import androidrestranslator.composeapp.generated.resources.settings_merge_strategy
+import androidrestranslator.composeapp.generated.resources.settings_merge_strategy_hint
+import androidrestranslator.composeapp.generated.resources.settings_page_subtitle
+import androidrestranslator.composeapp.generated.resources.settings_page_title
+import androidrestranslator.composeapp.generated.resources.settings_save_configuration
+import androidrestranslator.composeapp.generated.resources.settings_source_language
+import androidrestranslator.composeapp.generated.resources.settings_target_language
+import androidrestranslator.composeapp.generated.resources.settings_theme_classic
+import androidrestranslator.composeapp.generated.resources.settings_theme_geek_abyss
+import androidrestranslator.composeapp.generated.resources.settings_theme_porcelain
+import androidrestranslator.composeapp.generated.resources.settings_translation_strategies
+import androidrestranslator.composeapp.generated.resources.settings_ui_language
+import androidrestranslator.composeapp.generated.resources.settings_ui_language_en
+import androidrestranslator.composeapp.generated.resources.settings_ui_language_zh
+import org.jetbrains.compose.resources.stringResource
 import `fun`.abbas.android_res_translator.ui.theme.AppLabelCapsTextStyle
 import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
 import `fun`.abbas.android_res_translator.ui.theme.appCodeTextStyle
@@ -63,14 +90,14 @@ fun SettingsPageHeader(modifier: Modifier = Modifier) {
         ) {
             Icon(Icons.Default.Settings, contentDescription = null, tint = colors.primary, modifier = Modifier.size(28.dp))
             Text(
-                "Tool Configuration",
+                stringResource(Res.string.settings_page_title),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = colors.onSurface,
             )
         }
         Text(
-            "Manage your translation engine API keys and project-wide localization strategies.",
+            stringResource(Res.string.settings_page_subtitle),
             style = MaterialTheme.typography.bodySmall,
             color = colors.onSurfaceVariant,
         )
@@ -262,6 +289,8 @@ fun SettingsStrategiesCard(
     onDraft: (AppSettingsSnapshot) -> Unit,
     /** 主题切换立即落库，使 [AppRoot] 中 AppTheme 能读到新 snapshot（无需再点 Save）。 */
     onAppearancePersist: (AppSettingsSnapshot) -> Unit = {},
+    /** 界面语言切换立即落库，使 [ProvideAppLocale] 能读到新 snapshot。 */
+    onLocalePersist: (AppSettingsSnapshot) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val colors = MaterialTheme.colorScheme
@@ -284,11 +313,20 @@ fun SettingsStrategiesCard(
                 ) {
                     Icon(Icons.Default.Storage, contentDescription = null, tint = colors.secondary, modifier = Modifier.size(22.dp))
                     Text(
-                        "Translation Strategies",
+                        stringResource(Res.string.settings_translation_strategies),
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
                     )
                 }
+
+                UiLocaleRow(
+                    selected = draft.uiLocale,
+                    onSelect = { locale ->
+                        val next = draft.copy(uiLocale = locale)
+                        onDraft(next)
+                        onLocalePersist(next)
+                    },
+                )
 
                 AppearanceThemeRow(
                     selected = draft.appAppearance,
@@ -305,8 +343,8 @@ fun SettingsStrategiesCard(
                 )
 
                 StrategyToggleRow(
-                    title = "Force Translate",
-                    description = "Translate elements explicitly marked with translatable=\"false\".",
+                    title = stringResource(Res.string.settings_force_translate),
+                    description = stringResource(Res.string.settings_force_translate_hint),
                     checked = draft.forceTranslation,
                     onCheckedChange = { onDraft(draft.copy(forceTranslation = it)) },
                 )
@@ -331,6 +369,61 @@ fun SettingsStrategiesCard(
 }
 
 @Composable
+private fun UiLocaleRow(
+    selected: AppLocale,
+    onSelect: (AppLocale) -> Unit,
+) {
+    val colors = MaterialTheme.colorScheme
+    Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)) {
+        Text(
+            stringResource(Res.string.settings_ui_language),
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Bold,
+        )
+        Row(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(colors.surfaceContainerHighest.copy(alpha = 0.5f))
+                    .border(1.dp, colors.outlineVariant.copy(alpha = 0.35f), RoundedCornerShape(12.dp))
+                    .padding(6.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            listOf(
+                AppLocale.En to stringResource(Res.string.settings_ui_language_en),
+                AppLocale.Zh to stringResource(Res.string.settings_ui_language_zh),
+            ).forEach { (locale, label) ->
+                val isSelected = selected == locale
+                val bg = if (isSelected) colors.secondaryContainer else Color.Transparent
+                val fg = if (isSelected) colors.onSecondaryContainer else colors.onSurfaceVariant
+                Text(
+                    text = label,
+                    style = AppLabelCapsTextStyle.copy(fontWeight = FontWeight.Black),
+                    color = fg,
+                    textAlign = TextAlign.Center,
+                    modifier =
+                        Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(bg)
+                            .clickable { onSelect(locale) }
+                            .padding(horizontal = AppSpacing.md, vertical = AppSpacing.sm),
+                )
+            }
+        }
+    }
+    Spacer(Modifier.height(AppSpacing.sm))
+    Box(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(colors.outlineVariant.copy(alpha = 0.25f)),
+    )
+}
+
+@Composable
 private fun AppearanceThemeRow(
     selected: AppAppearance,
     onSelect: (AppAppearance) -> Unit,
@@ -338,12 +431,12 @@ private fun AppearanceThemeRow(
     val colors = MaterialTheme.colorScheme
     Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)) {
         Text(
-            "Interface theme",
+            stringResource(Res.string.settings_interface_theme),
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.Bold,
         )
         Text(
-            "Color palette only; typography and spacing stay as in the app design system.",
+            stringResource(Res.string.settings_interface_theme_hint),
             style = MaterialTheme.typography.bodySmall,
             color = colors.onSurfaceVariant,
         )
@@ -359,9 +452,9 @@ private fun AppearanceThemeRow(
         ) {
             val items =
                 listOf(
-                    AppAppearance.Classic to "Classic",
-                    AppAppearance.GeekAbyss to "Geek Abyss",
-                    AppAppearance.MinimalistPorcelain to "Porcelain",
+                    AppAppearance.Classic to stringResource(Res.string.settings_theme_classic),
+                    AppAppearance.GeekAbyss to stringResource(Res.string.settings_theme_geek_abyss),
+                    AppAppearance.MinimalistPorcelain to stringResource(Res.string.settings_theme_porcelain),
                 )
             items.forEach { (appearance, label) ->
                 val isSelected = selected == appearance
@@ -437,9 +530,9 @@ private fun MergeStrategyRow(
 @Composable
 private fun MergeStrategyCopy(modifier: Modifier = Modifier) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)) {
-        Text("Merge Strategy", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+        Text(stringResource(Res.string.settings_merge_strategy), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
         Text(
-            "Define how incoming translations from AI engines are integrated into existing XML resource files.",
+            stringResource(Res.string.settings_merge_strategy_hint),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -462,12 +555,12 @@ private fun MergeStrategySegmented(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         MergeSegment(
-            label = "Incremental",
+            label = stringResource(Res.string.settings_merge_incremental),
             selected = selected == ConsumerMode.FILLED,
             onClick = { onSelect(ConsumerMode.FILLED) },
         )
         MergeSegment(
-            label = "Overwrite",
+            label = stringResource(Res.string.settings_merge_overwrite),
             selected = selected == ConsumerMode.ALL_REPLACE,
             onClick = { onSelect(ConsumerMode.ALL_REPLACE) },
         )
@@ -538,14 +631,14 @@ private fun LocalizationDefaultsRow(
     onTargetChange: (String) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
-        Text("Localization Defaults", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+        Text(stringResource(Res.string.settings_localization_defaults), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
         BoxWithConstraints(Modifier.fillMaxWidth()) {
             if (maxWidth >= 480.dp) {
                 Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
                     SettingsKeyField(
                         field =
                             SettingsFieldModel(
-                                label = "Source Language",
+                                label = stringResource(Res.string.settings_source_language),
                                 placeholder = "en",
                                 isSecret = false,
                                 value = sourceLang,
@@ -556,7 +649,7 @@ private fun LocalizationDefaultsRow(
                     SettingsKeyField(
                         field =
                             SettingsFieldModel(
-                                label = "Target Language",
+                                label = stringResource(Res.string.settings_target_language),
                                 placeholder = "zh",
                                 isSecret = false,
                                 value = targetLang,
@@ -570,7 +663,7 @@ private fun LocalizationDefaultsRow(
                     SettingsKeyField(
                         field =
                             SettingsFieldModel(
-                                label = "Source Language",
+                                label = stringResource(Res.string.settings_source_language),
                                 placeholder = "en",
                                 isSecret = false,
                                 value = sourceLang,
@@ -580,7 +673,7 @@ private fun LocalizationDefaultsRow(
                     SettingsKeyField(
                         field =
                             SettingsFieldModel(
-                                label = "Target Language",
+                                label = stringResource(Res.string.settings_target_language),
                                 placeholder = "zh",
                                 isSecret = false,
                                 value = targetLang,
@@ -618,14 +711,13 @@ fun SettingsDangerZone(modifier: Modifier = Modifier) {
             }
             Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)) {
                 Text(
-                    "Advanced: Terminal Sync",
+                    stringResource(Res.string.settings_danger_title),
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold,
                     color = colors.error,
                 )
                 Text(
-                    "Synchronizing with remote Git repositories may overwrite localized XML configurations. " +
-                        "Ensure your workspace is clean before syncing.",
+                    stringResource(Res.string.settings_danger_message),
                     style = MaterialTheme.typography.bodySmall,
                     color = colors.onSurfaceVariant,
                 )
@@ -686,7 +778,7 @@ fun SettingsFloatingSaveAction(
                 Icon(Icons.Default.Save, contentDescription = null, modifier = Modifier.size(20.dp))
                 Spacer(Modifier.size(AppSpacing.sm))
                 Text(
-                    "SAVE CONFIGURATIONS",
+                    stringResource(Res.string.settings_save_configuration).uppercase(),
                     style = AppLabelCapsTextStyle.copy(fontWeight = FontWeight.Black),
                 )
             }

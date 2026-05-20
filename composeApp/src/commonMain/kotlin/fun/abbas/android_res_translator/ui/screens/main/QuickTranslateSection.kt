@@ -48,6 +48,13 @@ import `fun`.abbas.android_res_translator.ui.settings.AppSettingsRepository
 import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
 import `fun`.abbas.android_res_translator.ui.theme.appCodeTextStyle
 import `fun`.abbas.android_res_translator.ui.toUserMessage
+import androidrestranslator.composeapp.generated.resources.Res
+import androidrestranslator.composeapp.generated.resources.language_picker_source_title
+import androidrestranslator.composeapp.generated.resources.language_picker_target_title
+import androidrestranslator.composeapp.generated.resources.quick_translate_button
+import androidrestranslator.composeapp.generated.resources.quick_translate_placeholder
+import androidrestranslator.composeapp.generated.resources.quick_translate_title
+import org.jetbrains.compose.resources.stringResource
 import `fun`.abbas.android_res_translator.ui.translation.ActiveTranslationEngine
 import `fun`.abbas.android_res_translator.ui.translation.LanguagePickerCatalog
 import `fun`.abbas.android_res_translator.ui.translation.TranslationEngineCatalog
@@ -80,7 +87,7 @@ fun QuickTranslateSection(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.Bolt, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(22.dp))
             Text(
-                "Quick Translate",
+                stringResource(Res.string.quick_translate_title),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(start = AppSpacing.sm),
@@ -139,7 +146,7 @@ fun QuickTranslateSection(
                                             ) {
                                                 is TranslationOutcome.Ok -> output = o.value.translatedText
                                                 is TranslationOutcome.Err -> {
-                                                    error = o.failure.toUserMessage()
+                                                    error = o.failure.toUserMessage(snap.uiLocale)
                                                     output = ""
                                                 }
                                             }
@@ -184,7 +191,7 @@ fun QuickTranslateSection(
                                             ) {
                                                 is TranslationOutcome.Ok -> output = o.value.translatedText
                                                 is TranslationOutcome.Err -> {
-                                                    error = o.failure.toUserMessage()
+                                                    error = o.failure.toUserMessage(snap.uiLocale)
                                                     output = ""
                                                 }
                                             }
@@ -238,7 +245,10 @@ fun QuickTranslateSection(
             }
         val engineTitle = selectedEngine?.displayName ?: "未配置"
         LanguagePickerDialog(
-            title = if (isSource) "选择源语言（$engineTitle）" else "选择目标语言（$engineTitle）",
+            title =
+                stringResource(
+                    if (isSource) Res.string.language_picker_source_title else Res.string.language_picker_target_title,
+                ),
             engine = selectedEngine,
             options = options,
             selectedCode = if (isSource) from else to,
@@ -283,7 +293,7 @@ private fun QuickTranslateSourceColumn(
         OutlinedTextField(
             value = input,
             onValueChange = onInputChange,
-            placeholder = { Text("Paste strings or enter text...", style = appCodeTextStyle()) },
+            placeholder = { Text(stringResource(Res.string.quick_translate_placeholder), style = appCodeTextStyle()) },
             modifier = Modifier.fillMaxWidth().heightIn(min = 160.dp),
             minLines = 6,
             shape = RoundedCornerShape(12.dp),
@@ -358,7 +368,7 @@ private fun QuickTranslateTargetColumn(
                 elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp),
             ) {
                 Icon(Icons.Default.AutoFixHigh, contentDescription = null, modifier = Modifier.size(18.dp))
-                Text("Translate", fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = AppSpacing.xs))
+                Text(stringResource(Res.string.quick_translate_button), fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = AppSpacing.xs))
             }
         }
     }

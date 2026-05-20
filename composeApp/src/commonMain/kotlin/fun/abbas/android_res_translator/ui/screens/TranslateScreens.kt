@@ -36,6 +36,12 @@ import `fun`.abbas.android_res_translator.ui.settings.AppSettingsSnapshot
 import `fun`.abbas.android_res_translator.ui.settings.ConsumerMode
 import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
 import kotlinx.coroutines.launch
+import androidrestranslator.composeapp.generated.resources.Res
+import androidrestranslator.composeapp.generated.resources.translate_file_detail
+import androidrestranslator.composeapp.generated.resources.translate_read_source_xml
+import androidrestranslator.composeapp.generated.resources.translate_save_as_file
+import androidrestranslator.composeapp.generated.resources.translate_to_merged_xml
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun TranslateFileTab(
@@ -76,7 +82,7 @@ internal fun TranslateFileTab(
                 IconButton(onClick = back) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
                 }
-                Text("文件详情", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(Res.string.translate_file_detail), style = MaterialTheme.typography.titleMedium)
             }
         }
         AppSectionCard {
@@ -88,7 +94,7 @@ internal fun TranslateFileTab(
                 onClick = { xmlFileAccess.launchPickXml { r: Result<String> -> r.onSuccess { sourceXml = it } } },
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text("从文件读取源 XML")
+                Text(stringResource(Res.string.translate_read_source_xml))
             }
             Spacer(Modifier.height(AppSpacing.sm))
             AppOutlinedField(
@@ -136,7 +142,7 @@ internal fun TranslateFileTab(
                 enabled = !loading && sourceXml.isNotBlank(),
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text("翻译为合并后的 XML")
+                Text(stringResource(Res.string.translate_to_merged_xml))
             }
             if (loading) {
                 Spacer(Modifier.height(AppSpacing.sm))
@@ -171,7 +177,7 @@ internal fun TranslateFileTab(
                 enabled = output.isNotBlank() && !loading,
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text("保存为文件…")
+                Text(stringResource(Res.string.translate_save_as_file))
             }
         }
     }

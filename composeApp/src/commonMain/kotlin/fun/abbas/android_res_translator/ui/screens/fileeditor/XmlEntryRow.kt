@@ -28,6 +28,9 @@ import androidx.compose.ui.unit.dp
 import `fun`.abbas.android_res_translator.ui.theme.AppCodeSmallTextStyle
 import `fun`.abbas.android_res_translator.ui.theme.AppControlShape
 import `fun`.abbas.android_res_translator.ui.theme.AppLabelCapsTextStyle
+import androidrestranslator.composeapp.generated.resources.Res
+import androidrestranslator.composeapp.generated.resources.file_editor_translation_failed
+import org.jetbrains.compose.resources.stringResource
 import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
 
 /** 首版隐藏条目行操作按钮；保留实现供后续启用。 */
@@ -216,7 +219,11 @@ private fun TargetCell(
                 border = BorderStroke(1.dp, colors.error.copy(alpha = 0.5f)),
             ) {
                 Column(modifier = Modifier.padding(AppSpacing.md)) {
-                    Text("Translation Failed", style = AppLabelCapsTextStyle, color = colors.error)
+                    Text(
+                        stringResource(Res.string.file_editor_translation_failed),
+                        style = AppLabelCapsTextStyle,
+                        color = colors.error,
+                    )
                     Text(
                         message,
                         style = MaterialTheme.typography.bodyMedium,

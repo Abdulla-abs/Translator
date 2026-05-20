@@ -25,6 +25,14 @@ import `fun`.abbas.android_res_translator.ui.components.AppThinProgress
 import `fun`.abbas.android_res_translator.ui.screens.main.formatLanguageLabel
 import `fun`.abbas.android_res_translator.ui.theme.AppLabelCapsTextStyle
 import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
+import androidrestranslator.composeapp.generated.resources.Res
+import androidrestranslator.composeapp.generated.resources.file_editor_overall_progress
+import androidrestranslator.composeapp.generated.resources.file_editor_stat_error
+import androidrestranslator.composeapp.generated.resources.file_editor_stat_pending
+import androidrestranslator.composeapp.generated.resources.file_editor_stat_total
+import androidrestranslator.composeapp.generated.resources.file_editor_stat_translated
+import androidrestranslator.composeapp.generated.resources.file_editor_swap_langs
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun FileEditorProgressCard(
@@ -42,7 +50,7 @@ fun FileEditorProgressCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.Bottom,
         ) {
-            Text("Overall Progress", style = MaterialTheme.typography.headlineSmall)
+            Text(stringResource(Res.string.file_editor_overall_progress), style = MaterialTheme.typography.headlineSmall)
             Text(
                 "$percentInt%",
                 style = MaterialTheme.typography.displaySmall,
@@ -55,11 +63,11 @@ fun FileEditorProgressCard(
             modifier = Modifier.padding(vertical = AppSpacing.md),
         )
         Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.lg)) {
-            StatColumn("Total", state.totalCount.toString())
-            StatColumn("Translated", state.completedCount.toString(), colors.primary)
-            StatColumn("Pending", state.pendingCount.toString(), colors.tertiary)
+            StatColumn(stringResource(Res.string.file_editor_stat_total), state.totalCount.toString())
+            StatColumn(stringResource(Res.string.file_editor_stat_translated), state.completedCount.toString(), colors.primary)
+            StatColumn(stringResource(Res.string.file_editor_stat_pending), state.pendingCount.toString(), colors.tertiary)
             if (state.errorCount > 0) {
-                StatColumn("Error", state.errorCount.toString(), colors.error)
+                StatColumn(stringResource(Res.string.file_editor_stat_error), state.errorCount.toString(), colors.error)
             }
         }
         Row(
@@ -84,7 +92,7 @@ fun FileEditorProgressCard(
                 ) {
                     Icon(
                         Icons.Default.SwapHoriz,
-                        contentDescription = "互换源语言与目标语言",
+                        contentDescription = stringResource(Res.string.file_editor_swap_langs),
                         tint = colors.primary,
                     )
                 }

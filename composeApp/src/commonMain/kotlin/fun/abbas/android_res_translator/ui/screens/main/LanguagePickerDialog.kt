@@ -17,6 +17,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import `fun`.abbas.android_res_translator.ui.translation.ActiveTranslationEngine
 import `fun`.abbas.android_res_translator.ui.translation.LanguagePickerOption
+import androidrestranslator.composeapp.generated.resources.Res
+import androidrestranslator.composeapp.generated.resources.common_close
+import androidrestranslator.composeapp.generated.resources.language_picker_no_engine
+import androidrestranslator.composeapp.generated.resources.language_picker_no_options
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun LanguagePickerDialog(
@@ -34,12 +39,12 @@ fun LanguagePickerDialog(
         text = {
             if (engine == null) {
                 Text(
-                    "未配置翻译引擎，请先在设置中填写厂商 API 密钥。",
+                    stringResource(Res.string.language_picker_no_engine),
                     color = colors.onSurfaceVariant,
                 )
             } else if (options.isEmpty()) {
                 Text(
-                    "当前引擎（${engine.displayName}）暂无语言白名单，无法从列表选择。",
+                    stringResource(Res.string.language_picker_no_options, engine.displayName),
                     color = colors.onSurfaceVariant,
                 )
             } else {
@@ -67,7 +72,7 @@ fun LanguagePickerDialog(
         },
         confirmButton = {},
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("关闭") }
+            TextButton(onClick = onDismiss) { Text(stringResource(Res.string.common_close)) }
         },
     )
 }

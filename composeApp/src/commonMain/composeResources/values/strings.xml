@@ -1,0 +1,109 @@
+<resources>
+    <string name="app_name">KMP Translator</string>
+    <string name="app_name_sidebar">KMP DevTools</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="common_confirm">Confirm</string>
+    <string name="common_close">Close</string>
+    <string name="common_delete">Delete</string>
+    <string name="common_saved">Saved</string>
+    <string name="common_settings">Settings</string>
+
+    <string name="nav_translate">Translate</string>
+    <string name="nav_files">Files</string>
+    <string name="nav_settings">Settings</string>
+    <string name="nav_about">About</string>
+
+    <string name="files_search_placeholder">Search files...</string>
+    <string name="files_column_name">NAME</string>
+    <string name="files_column_action">ACTION</string>
+    <string name="files_directory_label">Directory</string>
+
+    <string name="dashboard_file_projects_title">File Projects</string>
+    <string name="dashboard_view_all">VIEW ALL</string>
+    <string name="dashboard_upload_xml">Upload XML</string>
+    <string name="dashboard_upload_hint">Drop your strings.xml here</string>
+    <string name="file_projects_delete_title">Delete project</string>
+    <string name="file_projects_delete_message">Delete "%1$s"? Local translation data will be removed and cannot be recovered.</string>
+    <string name="file_project_keys_translated">%1$d/%2$d keys translated</string>
+    <string name="file_project_modified_just_now">Modified just now</string>
+    <string name="file_project_modified_hours">Modified %1$dh ago</string>
+    <string name="file_project_modified_days">Modified %1$dd ago</string>
+
+    <string name="quick_translate_title">Quick Translate</string>
+    <string name="quick_translate_placeholder">Paste strings or enter text...</string>
+    <string name="quick_translate_button">Translate</string>
+    <string name="engine_picker_title">Select translation engine</string>
+    <string name="language_picker_source_title">Select source language</string>
+    <string name="language_picker_target_title">Select target language</string>
+    <string name="language_picker_no_engine">No translation engine configured. Add vendor API keys in Settings first.</string>
+    <string name="language_picker_no_options">No language list for %1$s. Cannot pick from catalog.</string>
+
+    <string name="file_editor_overall_progress">Overall Progress</string>
+    <string name="file_editor_stat_total">Total</string>
+    <string name="file_editor_stat_translated">Translated</string>
+    <string name="file_editor_stat_pending">Pending</string>
+    <string name="file_editor_stat_error">Error</string>
+    <string name="file_editor_swap_langs">Swap source and target languages</string>
+    <string name="file_editor_start_translation">Start Translation</string>
+    <string name="file_editor_pause_translation">Pause Translation</string>
+    <string name="file_editor_resume_translation">Resume Translation</string>
+    <string name="file_editor_export_xml">Export %1$s XML</string>
+    <string name="file_editor_export_confirm_title">Export confirmation</string>
+    <string name="file_editor_export_confirm_message">%1$d entries failed to translate. Failed entries will keep source text on export. Continue?</string>
+    <string name="file_editor_export_confirm_continue">Continue export</string>
+    <string name="file_editor_retranslate_title">Retranslate</string>
+    <string name="file_editor_retranslate_message">Translation is complete. Retranslate from scratch? Current translations will be cleared.</string>
+    <string name="file_editor_retranslate_confirm">Retranslate</string>
+    <string name="file_editor_filter_placeholder">Filter keys...</string>
+    <string name="file_editor_xml_entries">XML ENTRIES</string>
+    <string name="file_editor_no_matching_entries">No matching entries</string>
+    <string name="file_editor_export_not_ready">Translation is not complete; cannot export yet</string>
+    <string name="file_editor_exported">Exported</string>
+    <string name="file_editor_export_cancelled">Export cancelled</string>
+    <string name="file_editor_translation_failed">Translation Failed</string>
+    <string name="file_editor_header_langs">%1$s (%2$s -&gt; %3$s)</string>
+
+    <string name="settings_translation_strategies">Translation Strategies</string>
+    <string name="settings_page_title">Tool Configuration</string>
+    <string name="settings_page_subtitle">Manage your translation engine API keys and project-wide localization strategies.</string>
+    <string name="settings_ui_language">UI language</string>
+    <string name="settings_ui_language_en">English</string>
+    <string name="settings_ui_language_zh">简体中文</string>
+    <string name="settings_interface_theme">Interface theme</string>
+    <string name="settings_interface_theme_hint">Color palette only; typography and spacing stay as in the app design system.</string>
+    <string name="settings_theme_classic">Classic</string>
+    <string name="settings_theme_geek_abyss">Geek Abyss</string>
+    <string name="settings_theme_porcelain">Porcelain</string>
+    <string name="settings_merge_strategy">Merge Strategy</string>
+    <string name="settings_merge_strategy_hint">Define how incoming translations from AI engines are integrated into existing XML resource files.</string>
+    <string name="settings_merge_incremental">Incremental</string>
+    <string name="settings_merge_overwrite">Overwrite</string>
+    <string name="settings_force_translate">Force Translate</string>
+    <string name="settings_force_translate_hint">Translate elements explicitly marked with translatable=\"false\".</string>
+    <string name="settings_localization_defaults">Localization Defaults</string>
+    <string name="settings_source_language">Source Language</string>
+    <string name="settings_target_language">Target Language</string>
+    <string name="settings_save_configuration">Save Configuration</string>
+    <string name="settings_danger_title">Advanced: Terminal Sync</string>
+    <string name="settings_danger_message">Synchronizing with remote Git repositories may overwrite localized XML configurations. Ensure your workspace is clean before syncing.</string>
+
+    <string name="translate_file_detail">File details</string>
+    <string name="translate_read_source_xml">Read source XML from file</string>
+    <string name="translate_to_merged_xml">Translate to merged XML</string>
+    <string name="translate_save_as_file">Save as file…</string>
+
+    <string name="about_licenses_title">Open Source Licenses</string>
+
+    <string name="error_no_vendor_for_target">No translation service supports target language: %1$s</string>
+    <string name="error_network">Network error: %1$s</string>
+    <string name="error_lingvanex_payment">%1$s: Bind a payment method in the Lingvanex console (Billing), then try again.</string>
+    <string name="error_vendor_missing_key">%1$s: API key not configured (%2$s)</string>
+    <string name="error_vendor_unsupported">%1$s: Language or language pair not supported (%2$s)</string>
+    <string name="error_vendor_api">%1$s: %2$s</string>
+    <string name="error_vendor_generic">%1$s: %2$s</string>
+    <string name="vendor_lingvanex">Lingvanex</string>
+    <string name="vendor_huoshan">Volcano Engine</string>
+    <string name="vendor_baidu">Baidu Translate</string>
+    <string name="vendor_youdao">Youdao Translate</string>
+    <string name="vendor_tencent">Tencent Translate</string>
+</resources>

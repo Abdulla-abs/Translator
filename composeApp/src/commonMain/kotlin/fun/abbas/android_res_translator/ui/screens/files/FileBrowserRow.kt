@@ -23,6 +23,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import `fun`.abbas.android_res_translator.ui.theme.AppCodeSmallTextStyle
+import androidrestranslator.composeapp.generated.resources.Res
+import androidrestranslator.composeapp.generated.resources.files_directory_label
+import org.jetbrains.compose.resources.stringResource
 import `fun`.abbas.android_res_translator.ui.theme.AppCodeTextStyle
 import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
 
@@ -54,7 +57,7 @@ fun FileBrowserFolderRow(
             )
             Column(modifier = Modifier.padding(start = AppSpacing.md)) {
                 Text(folder.name, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text("Directory", style = AppCodeSmallTextStyle, color = colors.outline)
+                Text(stringResource(Res.string.files_directory_label), style = AppCodeSmallTextStyle, color = colors.outline)
             }
         }
         Icon(

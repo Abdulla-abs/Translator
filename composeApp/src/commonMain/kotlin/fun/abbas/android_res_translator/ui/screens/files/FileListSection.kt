@@ -12,6 +12,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import `fun`.abbas.android_res_translator.ui.components.AppGlassCard
 import `fun`.abbas.android_res_translator.ui.theme.AppLabelCapsTextStyle
+import androidrestranslator.composeapp.generated.resources.Res
+import androidrestranslator.composeapp.generated.resources.files_column_action
+import androidrestranslator.composeapp.generated.resources.files_column_name
+import org.jetbrains.compose.resources.stringResource
 import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
 
 @Composable
@@ -27,8 +31,8 @@ fun FileListSection(
             modifier = Modifier.fillMaxWidth().padding(bottom = AppSpacing.sm),
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Text("NAME", style = AppLabelCapsTextStyle, color = colors.onSurfaceVariant)
-            Text("ACTION", style = AppLabelCapsTextStyle, color = colors.onSurfaceVariant)
+            Text(stringResource(Res.string.files_column_name), style = AppLabelCapsTextStyle, color = colors.onSurfaceVariant)
+            Text(stringResource(Res.string.files_column_action), style = AppLabelCapsTextStyle, color = colors.onSurfaceVariant)
         }
         HorizontalDivider(color = colors.outlineVariant)
         if (items.isEmpty()) {

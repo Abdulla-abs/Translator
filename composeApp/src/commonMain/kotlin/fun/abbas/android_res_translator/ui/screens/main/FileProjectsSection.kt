@@ -40,6 +40,16 @@ import androidx.compose.ui.unit.dp
 import `fun`.abbas.android_res_translator.ui.components.FileProjectCard
 import `fun`.abbas.android_res_translator.ui.theme.AppLabelCapsTextStyle
 import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
+import androidrestranslator.composeapp.generated.resources.Res
+import androidrestranslator.composeapp.generated.resources.common_cancel
+import androidrestranslator.composeapp.generated.resources.common_delete
+import androidrestranslator.composeapp.generated.resources.dashboard_file_projects_title
+import androidrestranslator.composeapp.generated.resources.dashboard_upload_hint
+import androidrestranslator.composeapp.generated.resources.dashboard_upload_xml
+import androidrestranslator.composeapp.generated.resources.dashboard_view_all
+import androidrestranslator.composeapp.generated.resources.file_projects_delete_message
+import androidrestranslator.composeapp.generated.resources.file_projects_delete_title
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun FileProjectsSection(
@@ -62,14 +72,14 @@ fun FileProjectsSection(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.FolderZip, contentDescription = null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(22.dp))
                 Text(
-                    "File Projects",
+                    stringResource(Res.string.dashboard_file_projects_title),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(start = AppSpacing.sm),
                 )
             }
             Text(
-                "VIEW ALL",
+                stringResource(Res.string.dashboard_view_all),
                 style = AppLabelCapsTextStyle,
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
@@ -117,10 +127,10 @@ fun FileProjectsSection(
     projectPendingDelete?.let { project ->
         AlertDialog(
             onDismissRequest = { projectPendingDelete = null },
-            title = { Text("删除项目") },
+            title = { Text(stringResource(Res.string.file_projects_delete_title)) },
             text = {
                 Text(
-                    "确定删除「${project.displayName}」？将移除本地翻译记录（source / result / session），且无法恢复。",
+                    stringResource(Res.string.file_projects_delete_message, project.displayName),
                     style = MaterialTheme.typography.bodyMedium,
                 )
             },
@@ -131,12 +141,12 @@ fun FileProjectsSection(
                         projectPendingDelete = null
                     },
                 ) {
-                    Text("删除")
+                    Text(stringResource(Res.string.common_delete))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { projectPendingDelete = null }) {
-                    Text("取消")
+                    Text(stringResource(Res.string.common_cancel))
                 }
             },
         )
@@ -175,8 +185,8 @@ private fun UploadXmlCard(onClick: () -> Unit) {
                 )
             }
             Spacer(Modifier.height(AppSpacing.sm))
-            Text("Upload XML", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
-            Text("Drop your strings.xml here", style = MaterialTheme.typography.bodySmall, color = colors.outline)
+            Text(stringResource(Res.string.dashboard_upload_xml), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+            Text(stringResource(Res.string.dashboard_upload_hint), style = MaterialTheme.typography.bodySmall, color = colors.outline)
         }
     }
 }

@@ -69,20 +69,32 @@ import `fun`.abbas.android_res_translator.ui.settings.RepositorySecretsProvider
 import `fun`.abbas.android_res_translator.ui.settings.createAppSettingsRepository
 import `fun`.abbas.android_res_translator.ui.theme.AppControlShape
 import `fun`.abbas.android_res_translator.ui.theme.AppLabelCapsTextStyle
+import `fun`.abbas.android_res_translator.ui.i18n.ProvideAppLocale
 import `fun`.abbas.android_res_translator.ui.theme.AppTheme
+import androidrestranslator.composeapp.generated.resources.Res
+import androidrestranslator.composeapp.generated.resources.app_name
+import androidrestranslator.composeapp.generated.resources.app_name_sidebar
+import androidrestranslator.composeapp.generated.resources.common_settings
+import androidrestranslator.composeapp.generated.resources.files_search_placeholder
+import androidrestranslator.composeapp.generated.resources.nav_about
+import androidrestranslator.composeapp.generated.resources.nav_files
+import androidrestranslator.composeapp.generated.resources.nav_settings
+import androidrestranslator.composeapp.generated.resources.nav_translate
+import org.jetbrains.compose.resources.stringResource
 
 private data class RootTabItem(
     val route: RootRoute,
-    val label: String,
+    val labelRes: org.jetbrains.compose.resources.StringResource,
     val icon: ImageVector,
 )
 
-private val rootTabs =
+@Composable
+private fun rememberRootTabs(): List<RootTabItem> =
     listOf(
-        RootTabItem(RootRoute.Translate, "Translate", Icons.Default.Translate),
-        RootTabItem(RootRoute.Files, "Files", Icons.Default.FolderOpen),
-        RootTabItem(RootRoute.Settings, "Settings", Icons.Default.Settings),
-        RootTabItem(RootRoute.About, "About", Icons.Default.Info),
+        RootTabItem(RootRoute.Translate, Res.string.nav_translate, Icons.Default.Translate),
+        RootTabItem(RootRoute.Files, Res.string.nav_files, Icons.Default.FolderOpen),
+        RootTabItem(RootRoute.Settings, Res.string.nav_settings, Icons.Default.Settings),
+        RootTabItem(RootRoute.About, Res.string.nav_about, Icons.Default.Info),
     )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -106,7 +118,9 @@ fun AppRoot(settingsRepository: AppSettingsRepository = createAppSettingsReposit
 
     // 使用 StateFlow 专用 collectAsState（勿传 Flow 的 initial = 空快照，否则首帧与部分平台下订阅行为异常）
     val snap by settingsRepository.snapshot.collectAsState()
-    AppTheme(appearance = snap.appAppearance) {
+    val rootTabs = rememberRootTabs()
+    ProvideAppLocale(locale = snap.uiLocale) {
+        AppTheme(appearance = snap.appAppearance) {
         val colors = MaterialTheme.colorScheme
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val isDesktop = maxWidth >= 768.dp
@@ -140,7 +154,7 @@ fun AppRoot(settingsRepository: AppSettingsRepository = createAppSettingsReposit
                                 modifier = Modifier.size(24.dp),
                             )
                             Text(
-                                "KMP DevTools",
+                                stringResource(Res.string.app_name_sidebar),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Black,
                                 color = colors.primary,
@@ -171,7 +185,7 @@ fun AppRoot(settingsRepository: AppSettingsRepository = createAppSettingsReposit
                                             modifier = Modifier.size(20.dp),
                                         )
                                         Text(
-                                            tab.label.uppercase(),
+                                            stringResource(tab.labelRes).uppercase(),
                                             style = AppLabelCapsTextStyle,
                                             fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
                                         )
@@ -188,14 +202,14 @@ fun AppRoot(settingsRepository: AppSettingsRepository = createAppSettingsReposit
                         topBar = {
                             TopAppBar(
                                 title = {
-                                    Text("KMP Translator", style = MaterialTheme.typography.headlineSmall)
+                                    Text(stringResource(Res.string.app_name), style = MaterialTheme.typography.headlineSmall)
                                 },
                                 actions = {
                                     if (showFilesSearch) {
                                         OutlinedTextField(
                                             value = filesSearchQuery,
                                             onValueChange = { filesSearchQuery = it },
-                                            placeholder = { Text("Search files...") },
+                                            placeholder = { Text(stringResource(Res.string.files_search_placeholder)) },
                                             leadingIcon = {
                                                 Icon(Icons.Default.Search, contentDescription = null)
                                             },
@@ -205,7 +219,7 @@ fun AppRoot(settingsRepository: AppSettingsRepository = createAppSettingsReposit
                                         )
                                     }
                                     IconButton(onClick = { navigateToRootTab(backStack, RootRoute.Settings) }) {
-                                        Icon(Icons.Default.Settings, contentDescription = "Settings")
+                                        Icon(Icons.Default.Settings, contentDescription = stringResource(Res.string.common_settings))
                                     }
                                 },
                                 colors = TopAppBarDefaults.topAppBarColors(
@@ -259,7 +273,7 @@ fun AppRoot(settingsRepository: AppSettingsRepository = createAppSettingsReposit
                     topBar = {
                         TopAppBar(
                             title = {
-                                Text("KMP Translator", style = MaterialTheme.typography.headlineSmall)
+                                Text(stringResource(Res.string.app_name), style = MaterialTheme.typography.headlineSmall)
                             },
                             navigationIcon = {
                                 Icon(
@@ -274,7 +288,7 @@ fun AppRoot(settingsRepository: AppSettingsRepository = createAppSettingsReposit
                                     OutlinedTextField(
                                         value = filesSearchQuery,
                                         onValueChange = { filesSearchQuery = it },
-                                        placeholder = { Text("Search files...") },
+                                        placeholder = { Text(stringResource(Res.string.files_search_placeholder)) },
                                         leadingIcon = {
                                             Icon(Icons.Default.Search, contentDescription = null)
                                         },
@@ -284,7 +298,7 @@ fun AppRoot(settingsRepository: AppSettingsRepository = createAppSettingsReposit
                                     )
                                 }
                                 IconButton(onClick = { navigateToRootTab(backStack, RootRoute.Settings) }) {
-                                    Icon(Icons.Default.Settings, contentDescription = "Settings")
+                                    Icon(Icons.Default.Settings, contentDescription = stringResource(Res.string.common_settings))
                                 }
                             },
                             colors = TopAppBarDefaults.topAppBarColors(
@@ -310,7 +324,7 @@ fun AppRoot(settingsRepository: AppSettingsRepository = createAppSettingsReposit
                                             modifier = Modifier.size(20.dp)
                                         )
                                     },
-                                    label = { Text(tab.label) },
+                                    label = { Text(stringResource(tab.labelRes)) },
                                     colors = NavigationBarItemDefaults.colors(
                                         selectedIconColor = colors.onPrimaryContainer,
                                         selectedTextColor = colors.onSurface,
@@ -359,6 +373,7 @@ fun AppRoot(settingsRepository: AppSettingsRepository = createAppSettingsReposit
                     )
                 }
             }
+        }
         }
     }
 }

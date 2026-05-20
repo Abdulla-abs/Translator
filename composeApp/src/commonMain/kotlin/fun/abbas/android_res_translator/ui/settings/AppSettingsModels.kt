@@ -1,5 +1,6 @@
 package `fun`.abbas.android_res_translator.ui.settings
 
+import `fun`.abbas.android_res_translator.ui.i18n.AppLocale
 import `fun`.abbas.android_res_translator.ui.translation.ActiveTranslationEngine
 
 /** 与 `StringsXmlCodec` 合并策略对应。 */
@@ -28,6 +29,7 @@ data class AppSettingsSnapshot(
     val appAppearance: AppAppearance = AppAppearance.Classic,
     val consumerMode: ConsumerMode = ConsumerMode.FILLED,
     val forceTranslation: Boolean = false,
+    val uiLocale: AppLocale = AppLocale.En,
 ) {
     /** 仅非空项，供 [SecretsProvider] 读取（空串表示未配置）。 */
     fun toSecretsMap(): Map<String, String> = buildMap {
@@ -53,6 +55,7 @@ data class AppSettingsSnapshot(
         const val KEY_APP_APPEARANCE = "ui.appAppearance"
         const val KEY_CONSUMER_MODE = "ui.consumerMode"
         const val KEY_FORCE_TRANSLATION = "ui.forceTranslation"
+        const val KEY_UI_LOCALE = "ui.uiLocale"
 
         fun fromFlatMap(map: Map<String, String>): AppSettingsSnapshot =
             AppSettingsSnapshot(
@@ -77,6 +80,7 @@ data class AppSettingsSnapshot(
                         else -> ConsumerMode.FILLED
                     },
                 forceTranslation = map[KEY_FORCE_TRANSLATION]?.equals("true", ignoreCase = true) == true,
+                uiLocale = AppLocale.fromTag(map[KEY_UI_LOCALE]),
             )
     }
 }
@@ -99,4 +103,5 @@ fun AppSettingsSnapshot.toPersistenceMap(): Map<String, String> =
         put(AppSettingsSnapshot.KEY_APP_APPEARANCE, appAppearance.name)
         put(AppSettingsSnapshot.KEY_CONSUMER_MODE, consumerMode.name)
         put(AppSettingsSnapshot.KEY_FORCE_TRANSLATION, forceTranslation.toString())
+        put(AppSettingsSnapshot.KEY_UI_LOCALE, uiLocale.tag)
     }

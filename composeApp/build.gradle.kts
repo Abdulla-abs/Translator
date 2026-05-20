@@ -114,6 +114,10 @@ dependencies {
     debugImplementation(libs.compose.uiTooling)
 }
 
+compose.resources {
+    publicResClass = true
+}
+
 compose.desktop {
     application {
         mainClass = "fun.abbas.android_res_translator.MainKt"

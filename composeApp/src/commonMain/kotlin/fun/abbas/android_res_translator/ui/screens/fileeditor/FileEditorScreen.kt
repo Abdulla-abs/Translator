@@ -56,15 +56,35 @@ import `fun`.abbas.android_res_translator.ui.theme.AppCodeSmallTextStyle
 import `fun`.abbas.android_res_translator.ui.theme.AppControlShape
 import `fun`.abbas.android_res_translator.ui.theme.AppLabelCapsTextStyle
 import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
+import `fun`.abbas.android_res_translator.ui.i18n.AppLocale
 import `fun`.abbas.android_res_translator.ui.translation.ActiveTranslationEngine
 import `fun`.abbas.android_res_translator.ui.translation.LanguagePickerCatalog
+import androidrestranslator.composeapp.generated.resources.Res
+import androidrestranslator.composeapp.generated.resources.common_cancel
+import androidrestranslator.composeapp.generated.resources.file_editor_export_cancelled
+import androidrestranslator.composeapp.generated.resources.file_editor_export_confirm_continue
+import androidrestranslator.composeapp.generated.resources.file_editor_export_confirm_message
+import androidrestranslator.composeapp.generated.resources.file_editor_export_confirm_title
+import androidrestranslator.composeapp.generated.resources.file_editor_export_not_ready
+import androidrestranslator.composeapp.generated.resources.file_editor_exported
+import androidrestranslator.composeapp.generated.resources.file_editor_filter_placeholder
+import androidrestranslator.composeapp.generated.resources.file_editor_header_langs
+import androidrestranslator.composeapp.generated.resources.file_editor_no_matching_entries
+import androidrestranslator.composeapp.generated.resources.file_editor_xml_entries
+import androidrestranslator.composeapp.generated.resources.file_editor_retranslate_confirm
+import androidrestranslator.composeapp.generated.resources.file_editor_retranslate_message
+import androidrestranslator.composeapp.generated.resources.file_editor_retranslate_title
+import androidrestranslator.composeapp.generated.resources.language_picker_source_title
+import androidrestranslator.composeapp.generated.resources.language_picker_target_title
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun FileEditorScreen(
     controller: FileEditorController,
     selectedEngine: ActiveTranslationEngine?,
     xmlFileAccess: XmlFileAccess,
+    uiLocale: AppLocale,
     onBack: () -> Unit,
     onEditorStateChange: ((FileEditorState) -> Unit)? = null,
     modifier: Modifier = Modifier,
@@ -90,11 +110,18 @@ fun FileEditorScreen(
     LaunchedEffect(selectedEngine) {
         controller.setPreferredVendorName(selectedEngine?.vendorName)
     }
+    LaunchedEffect(uiLocale) {
+        controller.uiLocale = uiLocale
+    }
+
+    val exportedMessage = stringResource(Res.string.file_editor_exported)
+    val exportCancelledMessage = stringResource(Res.string.file_editor_export_cancelled)
+    val exportNotReadyMessage = stringResource(Res.string.file_editor_export_not_ready)
 
     fun performExport() {
         val xml = controller.exportXml()
         xmlFileAccess.launchSaveXml(xml, state.fileName) { ok ->
-            controller.setExportMessage(if (ok) "已导出" else "导出取消")
+            controller.setExportMessage(if (ok) exportedMessage else exportCancelledMessage)
         }
     }
 
@@ -104,7 +131,7 @@ fun FileEditorScreen(
             state.isExportReady -> performExport()
             else ->
                 scope.launch {
-                    snackbarHostState.showSnackbar("翻译尚未完成，无法导出")
+                    snackbarHostState.showSnackbar(exportNotReadyMessage)
                 }
         }
     }
@@ -222,7 +249,10 @@ fun FileEditorScreen(
             }
         val selectedCode = if (isSource) state.sourceLang else state.targetLang
         LanguagePickerDialog(
-            title = if (isSource) "选择源语言" else "选择目标语言",
+            title =
+                stringResource(
+                    if (isSource) Res.string.language_picker_source_title else Res.string.language_picker_target_title,
+                ),
             engine = selectedEngine,
             options = options,
             selectedCode = selectedCode,
@@ -246,10 +276,10 @@ fun FileEditorScreen(
     if (showExportWithErrorsConfirm) {
         AlertDialog(
             onDismissRequest = { showExportWithErrorsConfirm = false },
-            title = { Text("导出确认") },
+            title = { Text(stringResource(Res.string.file_editor_export_confirm_title)) },
             text = {
                 Text(
-                    "文件中有 ${state.errorCount} 条翻译失败。继续导出时，失败条目将保留源语言文本。是否继续导出？",
+                    stringResource(Res.string.file_editor_export_confirm_message, state.errorCount),
                     style = MaterialTheme.typography.bodyMedium,
                 )
             },
@@ -260,12 +290,12 @@ fun FileEditorScreen(
                         performExport()
                     },
                 ) {
-                    Text("继续导出")
+                    Text(stringResource(Res.string.file_editor_export_confirm_continue))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showExportWithErrorsConfirm = false }) {
-                    Text("取消")
+                    Text(stringResource(Res.string.common_cancel))
                 }
             },
         )
@@ -274,10 +304,10 @@ fun FileEditorScreen(
     if (showRetranslateConfirm) {
         AlertDialog(
             onDismissRequest = { showRetranslateConfirm = false },
-            title = { Text("重新翻译") },
+            title = { Text(stringResource(Res.string.file_editor_retranslate_title)) },
             text = {
                 Text(
-                    "文件已全部翻译完成，是否重新翻译？确认后当前译文将被清空并从头开始。",
+                    stringResource(Res.string.file_editor_retranslate_message),
                     style = MaterialTheme.typography.bodyMedium,
                 )
             },
@@ -288,12 +318,12 @@ fun FileEditorScreen(
                         controller.retranslateAllFromScratch()
                     },
                 ) {
-                    Text("重新翻译")
+                    Text(stringResource(Res.string.file_editor_retranslate_confirm))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showRetranslateConfirm = false }) {
-                    Text("取消")
+                    Text(stringResource(Res.string.common_cancel))
                 }
             },
         )
@@ -322,7 +352,7 @@ private fun FileEditorHeader(
             }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    "$fileName ($sourceLang -> $targetLang)",
+                    stringResource(Res.string.file_editor_header_langs, fileName, sourceLang, targetLang),
                     style = MaterialTheme.typography.headlineSmall,
                     color = colors.primary,
                 )
@@ -362,7 +392,7 @@ private fun XmlEntriesSection(
             ) {
                 if (!searchExpanded) {
                     Text(
-                        "XML ENTRIES",
+                        stringResource(Res.string.file_editor_xml_entries),
                         style = AppLabelCapsTextStyle,
                         color = colors.onSurfaceVariant,
                         modifier = Modifier.weight(1f).padding(end = AppSpacing.sm),
@@ -371,7 +401,7 @@ private fun XmlEntriesSection(
                 OutlinedTextField(
                     value = state.keyFilter,
                     onValueChange = onKeyFilterChange,
-                    placeholder = { Text("Filter keys...") },
+                    placeholder = { Text(stringResource(Res.string.file_editor_filter_placeholder)) },
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                     singleLine = true,
                     shape = AppControlShape,
@@ -391,7 +421,7 @@ private fun XmlEntriesSection(
         HorizontalDivider(color = colors.outlineVariant)
         if (state.filteredEntries.isEmpty()) {
             Text(
-                "无匹配条目",
+                stringResource(Res.string.file_editor_no_matching_entries),
                 modifier = Modifier.padding(vertical = AppSpacing.lg),
                 color = colors.onSurfaceVariant,
             )

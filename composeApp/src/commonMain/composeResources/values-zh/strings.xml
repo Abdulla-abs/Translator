@@ -1,0 +1,109 @@
+<resources>
+    <string name="app_name">KMP 翻译器</string>
+    <string name="app_name_sidebar">KMP 开发工具</string>
+    <string name="common_cancel">取消</string>
+    <string name="common_confirm">确认</string>
+    <string name="common_close">关闭</string>
+    <string name="common_delete">删除</string>
+    <string name="common_saved">已保存</string>
+    <string name="common_settings">设置</string>
+
+    <string name="nav_translate">翻译</string>
+    <string name="nav_files">文件</string>
+    <string name="nav_settings">设置</string>
+    <string name="nav_about">关于</string>
+
+    <string name="files_search_placeholder">搜索文件…</string>
+    <string name="files_column_name">名称</string>
+    <string name="files_column_action">操作</string>
+    <string name="files_directory_label">目录</string>
+
+    <string name="dashboard_file_projects_title">文件项目</string>
+    <string name="dashboard_view_all">查看全部</string>
+    <string name="dashboard_upload_xml">上传 XML</string>
+    <string name="dashboard_upload_hint">将 strings.xml 拖放到此处</string>
+    <string name="file_projects_delete_title">删除项目</string>
+    <string name="file_projects_delete_message">确定删除「%1$s」？将移除本地翻译记录（source / result / session），且无法恢复。</string>
+    <string name="file_project_keys_translated">已译 %1$d/%2$d 个 key</string>
+    <string name="file_project_modified_just_now">刚刚修改</string>
+    <string name="file_project_modified_hours">%1$d 小时前修改</string>
+    <string name="file_project_modified_days">%1$d 天前修改</string>
+
+    <string name="quick_translate_title">快速翻译</string>
+    <string name="quick_translate_placeholder">粘贴字符串或输入文本…</string>
+    <string name="quick_translate_button">翻译</string>
+    <string name="engine_picker_title">选择翻译引擎</string>
+    <string name="language_picker_source_title">选择源语言</string>
+    <string name="language_picker_target_title">选择目标语言</string>
+    <string name="language_picker_no_engine">未配置翻译引擎，请先在设置中填写厂商 API 密钥。</string>
+    <string name="language_picker_no_options">当前引擎（%1$s）暂无语言白名单，无法从列表选择。</string>
+
+    <string name="file_editor_overall_progress">整体进度</string>
+    <string name="file_editor_stat_total">总计</string>
+    <string name="file_editor_stat_translated">已译</string>
+    <string name="file_editor_stat_pending">待译</string>
+    <string name="file_editor_stat_error">错误</string>
+    <string name="file_editor_swap_langs">互换源语言与目标语言</string>
+    <string name="file_editor_start_translation">开始翻译</string>
+    <string name="file_editor_pause_translation">暂停翻译</string>
+    <string name="file_editor_resume_translation">继续翻译</string>
+    <string name="file_editor_export_xml">导出 %1$s XML</string>
+    <string name="file_editor_export_confirm_title">导出确认</string>
+    <string name="file_editor_export_confirm_message">文件中有 %1$d 条翻译失败。继续导出时，失败条目将保留源语言文本。是否继续导出？</string>
+    <string name="file_editor_export_confirm_continue">继续导出</string>
+    <string name="file_editor_retranslate_title">重新翻译</string>
+    <string name="file_editor_retranslate_message">文件已全部翻译完成，是否重新翻译？确认后当前译文将被清空并从头开始。</string>
+    <string name="file_editor_retranslate_confirm">重新翻译</string>
+    <string name="file_editor_filter_placeholder">筛选 key…</string>
+    <string name="file_editor_xml_entries">XML 条目</string>
+    <string name="file_editor_no_matching_entries">无匹配条目</string>
+    <string name="file_editor_export_not_ready">翻译尚未完成，无法导出</string>
+    <string name="file_editor_exported">已导出</string>
+    <string name="file_editor_export_cancelled">导出取消</string>
+    <string name="file_editor_translation_failed">翻译失败</string>
+    <string name="file_editor_header_langs">%1$s（%2$s → %3$s）</string>
+
+    <string name="settings_translation_strategies">翻译策略</string>
+    <string name="settings_page_title">工具配置</string>
+    <string name="settings_page_subtitle">管理翻译引擎 API 密钥与项目级本地化策略。</string>
+    <string name="settings_ui_language">界面语言</string>
+    <string name="settings_ui_language_en">English</string>
+    <string name="settings_ui_language_zh">简体中文</string>
+    <string name="settings_interface_theme">界面主题</string>
+    <string name="settings_interface_theme_hint">仅切换配色；字体与间距仍遵循应用设计系统。</string>
+    <string name="settings_theme_classic">经典</string>
+    <string name="settings_theme_geek_abyss">极客深渊</string>
+    <string name="settings_theme_porcelain">极简瓷白</string>
+    <string name="settings_merge_strategy">合并策略</string>
+    <string name="settings_merge_strategy_hint">定义 AI 引擎译文如何合并进现有 XML 资源文件。</string>
+    <string name="settings_merge_incremental">增量</string>
+    <string name="settings_merge_overwrite">覆盖</string>
+    <string name="settings_force_translate">强制翻译</string>
+    <string name="settings_force_translate_hint">翻译显式标记为 translatable=\"false\" 的元素。</string>
+    <string name="settings_localization_defaults">本地化默认</string>
+    <string name="settings_source_language">源语言</string>
+    <string name="settings_target_language">目标语言</string>
+    <string name="settings_save_configuration">保存配置</string>
+    <string name="settings_danger_title">高级：终端同步</string>
+    <string name="settings_danger_message">与远程 Git 仓库同步可能覆盖已本地化的 XML 配置。同步前请确保工作区干净。</string>
+
+    <string name="translate_file_detail">文件详情</string>
+    <string name="translate_read_source_xml">从文件读取源 XML</string>
+    <string name="translate_to_merged_xml">翻译为合并后的 XML</string>
+    <string name="translate_save_as_file">保存为文件…</string>
+
+    <string name="about_licenses_title">开源许可</string>
+
+    <string name="error_no_vendor_for_target">没有翻译服务支持目标语言：%1$s</string>
+    <string name="error_network">网络错误：%1$s</string>
+    <string name="error_lingvanex_payment">%1$s：请在 Lingvanex 后台绑定支付方式（Billing）后再试。</string>
+    <string name="error_vendor_missing_key">%1$s：未配置 API 密钥（%2$s）</string>
+    <string name="error_vendor_unsupported">%1$s：不支持当前语言或语言对（%2$s）</string>
+    <string name="error_vendor_api">%1$s：%2$s</string>
+    <string name="error_vendor_generic">%1$s：%2$s</string>
+    <string name="vendor_lingvanex">Lingvanex</string>
+    <string name="vendor_huoshan">火山引擎</string>
+    <string name="vendor_baidu">百度翻译</string>
+    <string name="vendor_youdao">有道翻译</string>
+    <string name="vendor_tencent">腾讯翻译</string>
+</resources>

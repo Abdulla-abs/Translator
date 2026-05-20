@@ -34,6 +34,9 @@ import `fun`.abbas.android_res_translator.ui.settings.AppSettingsRepository
 import `fun`.abbas.android_res_translator.ui.theme.AppControlShape
 import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
 import `fun`.abbas.android_res_translator.ui.translation.LanguagePickerCatalog
+import androidrestranslator.composeapp.generated.resources.Res
+import androidrestranslator.composeapp.generated.resources.files_search_placeholder
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun FilesScreen(
@@ -73,7 +76,7 @@ fun FilesScreen(
                                 onSearchQueryChange(it)
                                 store.setSearchQuery(it)
                             },
-                            placeholder = { Text("Search files...") },
+                            placeholder = { Text(stringResource(Res.string.files_search_placeholder)) },
                             singleLine = true,
                             shape = AppControlShape,
                             modifier =
@@ -136,6 +139,7 @@ fun FilesScreen(
                     controller = controller,
                     selectedEngine = selectedEngine,
                     xmlFileAccess = xmlFileAccess,
+                    uiLocale = snap.uiLocale,
                     onBack = { mode = FilesUiMode.Browse },
                     modifier = modifier,
                 )

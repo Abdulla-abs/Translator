@@ -31,6 +31,12 @@ import `fun`.abbas.android_res_translator.util.currentEpochMillis
 import `fun`.abbas.android_res_translator.ui.theme.AppCodeSmallTextStyle
 import `fun`.abbas.android_res_translator.ui.theme.AppLabelCapsTextStyle
 import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
+import androidrestranslator.composeapp.generated.resources.Res
+import androidrestranslator.composeapp.generated.resources.file_project_keys_translated
+import androidrestranslator.composeapp.generated.resources.file_project_modified_days
+import androidrestranslator.composeapp.generated.resources.file_project_modified_hours
+import androidrestranslator.composeapp.generated.resources.file_project_modified_just_now
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun FileProjectCard(
@@ -129,7 +135,11 @@ fun FileProjectCard(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        "${project.translatedKeys}/${project.totalKeys} keys translated",
+                        stringResource(
+                            Res.string.file_project_keys_translated,
+                            project.translatedKeys,
+                            project.totalKeys,
+                        ),
                         style = AppCodeSmallTextStyle,
                         color = colors.onSurfaceVariant.copy(alpha = 0.85f),
                     )
@@ -149,12 +159,13 @@ fun FileProjectCard(
     }
 }
 
+@Composable
 private fun formatModifiedAgo(epochMs: Long): String {
-    if (epochMs <= 0L) return "Modified just now"
+    if (epochMs <= 0L) return stringResource(Res.string.file_project_modified_just_now)
     val hours = ((currentEpochMillis() - epochMs) / 3_600_000).coerceAtLeast(0)
     return when {
-        hours < 1 -> "Modified just now"
-        hours < 24 -> "Modified ${hours}h ago"
-        else -> "Modified ${hours / 24}d ago"
+        hours < 1 -> stringResource(Res.string.file_project_modified_just_now)
+        hours < 24 -> stringResource(Res.string.file_project_modified_hours, hours)
+        else -> stringResource(Res.string.file_project_modified_days, hours / 24)
     }
 }

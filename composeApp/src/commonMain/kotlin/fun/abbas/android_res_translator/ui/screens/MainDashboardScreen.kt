@@ -98,6 +98,7 @@ fun MainDashboardScreen(
                     controller = controller,
                     selectedEngine = selectedEngine,
                     xmlFileAccess = xmlFileAccess,
+                    uiLocale = snap.uiLocale,
                     onBack = { mode = DashboardUiMode.Home },
                     onEditorStateChange = { editorState ->
                         projectRepository.syncEditorState(projectId, editorState)

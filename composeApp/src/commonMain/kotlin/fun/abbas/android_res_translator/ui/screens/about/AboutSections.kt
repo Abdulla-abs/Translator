@@ -47,6 +47,10 @@ import `fun`.abbas.android_res_translator.ui.components.AppGlassCard
 import `fun`.abbas.android_res_translator.ui.theme.AppCodeSmallTextStyle
 import `fun`.abbas.android_res_translator.ui.theme.AppLabelCapsTextStyle
 import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
+import androidrestranslator.composeapp.generated.resources.Res
+import androidrestranslator.composeapp.generated.resources.about_licenses_title
+import androidrestranslator.composeapp.generated.resources.common_close
+import org.jetbrains.compose.resources.stringResource
 import `fun`.abbas.android_res_translator.ui.theme.appCodeTextStyle
 
 @Composable
@@ -365,7 +369,7 @@ fun AboutLicensesSection(modifier: Modifier = Modifier) {
     if (showAll) {
         AlertDialog(
             onDismissRequest = { showAll = false },
-            title = { Text("Open Source Licenses") },
+            title = { Text(stringResource(Res.string.about_licenses_title)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
                     AboutContent.allLicenses.forEach { license ->
@@ -388,7 +392,7 @@ fun AboutLicensesSection(modifier: Modifier = Modifier) {
             },
             confirmButton = {
                 TextButton(onClick = { showAll = false }) {
-                    Text("Close")
+                    Text(stringResource(Res.string.common_close))
                 }
             },
         )

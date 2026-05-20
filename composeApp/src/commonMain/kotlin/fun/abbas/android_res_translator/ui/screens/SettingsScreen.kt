@@ -29,6 +29,9 @@ import `fun`.abbas.android_res_translator.ui.screens.settings.SettingsStrategies
 import `fun`.abbas.android_res_translator.ui.screens.settings.buildProviderSections
 import `fun`.abbas.android_res_translator.ui.settings.AppSettingsRepository
 import `fun`.abbas.android_res_translator.ui.settings.AppSettingsSnapshot
+import androidrestranslator.composeapp.generated.resources.Res
+import androidrestranslator.composeapp.generated.resources.common_saved
+import org.jetbrains.compose.resources.stringResource
 import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -41,6 +44,7 @@ fun SettingsScreen(
     val scope = rememberCoroutineScope()
     var draft by remember { mutableStateOf(AppSettingsSnapshot()) }
     var savedHint by remember { mutableStateOf<String?>(null) }
+    val savedLabel = stringResource(Res.string.common_saved)
 
     LaunchedEffect(repository) {
         repository.snapshot.collectLatest { draft = it }
@@ -52,7 +56,7 @@ fun SettingsScreen(
     val onSave: () -> Unit = {
         scope.launch {
             repository.replaceAll(draft)
-            savedHint = "Saved"
+            savedHint = savedLabel
         }
     }
 
@@ -75,6 +79,9 @@ fun SettingsScreen(
                 draft = draft,
                 onDraft = { draft = it },
                 onAppearancePersist = { next ->
+                    scope.launch { repository.replaceAll(next) }
+                },
+                onLocalePersist = { next ->
                     scope.launch { repository.replaceAll(next) }
                 },
             )

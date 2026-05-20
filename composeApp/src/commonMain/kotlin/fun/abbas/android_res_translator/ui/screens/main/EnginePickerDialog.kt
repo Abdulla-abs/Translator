@@ -17,6 +17,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import `fun`.abbas.android_res_translator.ui.translation.ActiveTranslationEngine
 import `fun`.abbas.android_res_translator.ui.translation.TranslationEngineOption
+import androidrestranslator.composeapp.generated.resources.Res
+import androidrestranslator.composeapp.generated.resources.common_close
+import androidrestranslator.composeapp.generated.resources.engine_picker_title
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun EnginePickerDialog(
@@ -28,7 +32,7 @@ fun EnginePickerDialog(
     val colors = MaterialTheme.colorScheme
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("选择翻译引擎") },
+        title = { Text(stringResource(Res.string.engine_picker_title)) },
         text = {
             LazyColumn(modifier = Modifier.heightIn(max = 360.dp)) {
                 items(options, key = { it.engine.name }) { option ->
@@ -58,7 +62,7 @@ fun EnginePickerDialog(
         },
         confirmButton = {},
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("关闭") }
+            TextButton(onClick = onDismiss) { Text(stringResource(Res.string.common_close)) }
         },
     )
 }
