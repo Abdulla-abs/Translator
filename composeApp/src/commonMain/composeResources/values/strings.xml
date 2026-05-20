@@ -92,7 +92,33 @@
     <string name="translate_to_merged_xml">Translate to merged XML</string>
     <string name="translate_save_as_file">Save as file…</string>
 
+    <string name="about_hero_version">Version %1$s (Stable Build)</string>
+    <string name="about_chip_production_ready">Production Ready</string>
+    <string name="about_kotlin_version">Kotlin 2.3</string>
+    <string name="about_open_source_title">The Open Source Project</string>
+    <string name="about_open_source_body">KMP Translator is a community-driven tool designed to bridge the gap between platform-specific localization and Kotlin Multiplatform efficiency. Our mission is to provide developers with a seamless, high-performance workflow for internationalizing cross-platform applications.</string>
+    <string name="about_view_github">VIEW ON GITHUB</string>
+    <string name="about_building_together">BUILDING TOGETHER</string>
+    <string name="about_free_open_source">100% Free and Open Source</string>
     <string name="about_licenses_title">Open Source Licenses</string>
+    <string name="about_view_all_licenses">VIEW ALL LICENSES</string>
+    <string name="about_acknowledgments">Project Acknowledgments</string>
+    <string name="about_footer_tagline">Designed with care for the Kotlin Community</string>
+    <string name="about_footer_built">Built with Compose Multiplatform &amp; %1$s</string>
+
+    <string name="common_back">Back</string>
+    <string name="common_retry">Retry</string>
+    <string name="common_edit">Edit</string>
+    <string name="common_upload_file">Upload file</string>
+    <string name="common_download">Download</string>
+    <string name="common_filter">Filter</string>
+    <string name="files_root_directory">Root directory</string>
+
+    <string name="translate_source_xml_label">Source strings.xml</string>
+    <string name="translate_target_xml_optional">Existing target XML (optional)</string>
+    <string name="translate_result_preview">Result preview</string>
+    <string name="translate_source_lang">Source language</string>
+    <string name="translate_target_lang">Target language</string>
 
     <string name="error_no_vendor_for_target">No translation service supports target language: %1$s</string>
     <string name="error_network">Network error: %1$s</string>

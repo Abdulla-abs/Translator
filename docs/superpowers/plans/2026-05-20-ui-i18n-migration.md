@@ -314,11 +314,11 @@ git commit -m "feat(i18n): localize translation error messages"
 - Modify: `ui/screens/about/AboutSections.kt`
 - Modify: `README.md`（简短说明界面语言）
 
-- [ ] **Step 1: 决策** — About 大段英文介绍是否翻译（建议：按钮/标题迁资源，正文保持英文或单独 `values-zh` 长文案）
+- [x] **Step 1: 决策** — About 标题/正文/按钮迁入 `values` + `values-zh`；许可库名称与描述保留英文（`AboutContent` 数据）
 
-- [ ] **Step 2: 执行迁移或登记技术债**
+- [x] **Step 2: 执行迁移或登记技术债**
 
-- [ ] **Step 3: 全库扫描残留**
+- [x] **Step 3: 全库扫描残留**
 
 ```bash
 # 在 composeApp/src/commonMain/kotlin/.../ui 下搜索
@@ -327,9 +327,9 @@ title = \{ Text\(
 showSnackbar\("
 ```
 
-- [ ] **Step 4: 更新 README「使用说明」** — 增加 Settings → UI language
+- [x] **Step 4: 更新 README「使用说明」** — 增加 Settings → UI language
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 5: Commit**（按需由维护者执行）
 
 ```bash
 git commit -m "docs(i18n): complete about page and document UI locale in README"

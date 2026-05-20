@@ -60,6 +60,7 @@ import `fun`.abbas.android_res_translator.ui.i18n.AppLocale
 import `fun`.abbas.android_res_translator.ui.translation.ActiveTranslationEngine
 import `fun`.abbas.android_res_translator.ui.translation.LanguagePickerCatalog
 import androidrestranslator.composeapp.generated.resources.Res
+import androidrestranslator.composeapp.generated.resources.common_back
 import androidrestranslator.composeapp.generated.resources.common_cancel
 import androidrestranslator.composeapp.generated.resources.file_editor_export_cancelled
 import androidrestranslator.composeapp.generated.resources.file_editor_export_confirm_continue
@@ -348,7 +349,7 @@ private fun FileEditorHeader(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回", tint = colors.primary)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.common_back), tint = colors.primary)
             }
             Column(modifier = Modifier.weight(1f)) {
                 Text(

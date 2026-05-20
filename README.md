@@ -47,6 +47,7 @@
 - **Export** — export XML when done; confirm dialog if any entries failed (failed entries keep source text)
 - **File browser** — open local `strings.xml` in the editor
 - **Themes & settings** — Material 3 skins, default languages, translation mode (fill missing only / replace all)
+- **UI language** — English or Simplified Chinese for the app interface (separate from translation source/target languages)
 
 ---
 
@@ -144,10 +145,11 @@ Open the [`iosApp`](./iosApp) directory in Xcode and run on a device or simulato
 ## Usage
 
 1. **Configure keys** — add provider credentials in Settings and pick a preferred engine.
-2. **Import XML** — upload `strings.xml` on the Dashboard, or open a file from the Files tab.
-3. **Languages** — set source and target (Android-style codes such as `en`, `zh`, `zh-rTW`).
-4. **Translate** — **Start Translation**; retry failed entries individually.
-5. **Export** — export when complete; if there are **Error** entries, confirm before exporting.
+2. **UI language (optional)** — in **Settings → Translation Strategies**, choose **UI language** (`English` or `简体中文`). This changes menus, dialogs, and labels only; it does not change your project's `strings.xml` translation languages.
+3. **Import XML** — upload `strings.xml` on the Dashboard, or open a file from the Files tab.
+4. **Languages** — set source and target (Android-style codes such as `en`, `zh`, `zh-rTW`).
+5. **Translate** — **Start Translation**; retry failed entries individually.
+6. **Export** — export when complete; if there are **Error** entries, confirm before exporting.
 
 Projects are stored under `translation-projects/` in the app data directory (`index.json`, per-project `source.xml` / `result.xml` / `session.json`).
 

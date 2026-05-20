@@ -29,6 +29,9 @@ import `fun`.abbas.android_res_translator.ui.theme.AppCodeSmallTextStyle
 import `fun`.abbas.android_res_translator.ui.theme.AppControlShape
 import `fun`.abbas.android_res_translator.ui.theme.AppLabelCapsTextStyle
 import androidrestranslator.composeapp.generated.resources.Res
+import androidrestranslator.composeapp.generated.resources.common_delete
+import androidrestranslator.composeapp.generated.resources.common_edit
+import androidrestranslator.composeapp.generated.resources.common_retry
 import androidrestranslator.composeapp.generated.resources.file_editor_translation_failed
 import org.jetbrains.compose.resources.stringResource
 import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
@@ -99,15 +102,15 @@ fun XmlEntryRow(
                 when (entry.status) {
                     is EntryStatus.Error -> {
                         IconButton(onClick = onRetry) {
-                            Icon(Icons.Default.Refresh, contentDescription = "重试", tint = colors.primary)
+                            Icon(Icons.Default.Refresh, contentDescription = stringResource(Res.string.common_retry), tint = colors.primary)
                         }
                         IconButton(onClick = { /* 首版不删除 */ }) {
-                            Icon(Icons.Default.DeleteOutline, contentDescription = "删除", tint = colors.onSurfaceVariant)
+                            Icon(Icons.Default.DeleteOutline, contentDescription = stringResource(Res.string.common_delete), tint = colors.onSurfaceVariant)
                         }
                     }
                     is EntryStatus.Completed -> {
                         IconButton(onClick = { /* 首版不编辑 */ }) {
-                            Icon(Icons.Default.Edit, contentDescription = "编辑", tint = colors.onSurfaceVariant)
+                            Icon(Icons.Default.Edit, contentDescription = stringResource(Res.string.common_edit), tint = colors.onSurfaceVariant)
                         }
                     }
                     else -> {

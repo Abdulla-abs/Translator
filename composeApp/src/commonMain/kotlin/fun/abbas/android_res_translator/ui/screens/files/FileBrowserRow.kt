@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import `fun`.abbas.android_res_translator.ui.theme.AppCodeSmallTextStyle
 import androidrestranslator.composeapp.generated.resources.Res
 import androidrestranslator.composeapp.generated.resources.files_directory_label
+import androidrestranslator.composeapp.generated.resources.common_download
 import org.jetbrains.compose.resources.stringResource
 import `fun`.abbas.android_res_translator.ui.theme.AppCodeTextStyle
 import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
@@ -106,7 +107,7 @@ fun FileBrowserXmlRow(
         BoxWithConstraints {
             if (maxWidth >= 400.dp) {
                 IconButton(onClick = { /* No download in first version */ }) {
-                    Icon(Icons.Default.Download, contentDescription = "Download", tint = colors.onSurfaceVariant)
+                    Icon(Icons.Default.Download, contentDescription = stringResource(Res.string.common_download), tint = colors.onSurfaceVariant)
                 }
             }
         }

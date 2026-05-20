@@ -23,6 +23,9 @@ import androidx.compose.ui.unit.dp
 import `fun`.abbas.android_res_translator.ui.XmlFileAccess
 import `fun`.abbas.android_res_translator.ui.screens.main.TranslationProjectRepository
 import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
+import androidrestranslator.composeapp.generated.resources.Res
+import androidrestranslator.composeapp.generated.resources.common_upload_file
+import org.jetbrains.compose.resources.stringResource
 import kotlin.random.Random
 
 @Composable
@@ -96,7 +99,7 @@ fun FileBrowserScreen(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
             contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
         ) {
-            Icon(Icons.Default.UploadFile, contentDescription = "Upload File")
+            Icon(Icons.Default.UploadFile, contentDescription = stringResource(Res.string.common_upload_file))
         }
     }
 }

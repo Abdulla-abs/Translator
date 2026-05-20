@@ -92,7 +92,33 @@
     <string name="translate_to_merged_xml">翻译为合并后的 XML</string>
     <string name="translate_save_as_file">保存为文件…</string>
 
+    <string name="about_hero_version">版本 %1$s（稳定版）</string>
+    <string name="about_chip_production_ready">可用于生产</string>
+    <string name="about_kotlin_version">Kotlin 2.3</string>
+    <string name="about_open_source_title">开源项目</string>
+    <string name="about_open_source_body">KMP 翻译器是面向社区的跨平台本地化工具，旨在弥合平台专属资源与 Kotlin Multiplatform 效率之间的鸿沟。我们的使命是为开发者提供流畅、高性能的跨平台应用国际化工作流。</string>
+    <string name="about_view_github">在 GitHub 查看</string>
+    <string name="about_building_together">共建生态</string>
+    <string name="about_free_open_source">100% 免费开源</string>
     <string name="about_licenses_title">开源许可</string>
+    <string name="about_view_all_licenses">查看全部许可</string>
+    <string name="about_acknowledgments">项目致谢</string>
+    <string name="about_footer_tagline">为 Kotlin 社区用心打造</string>
+    <string name="about_footer_built">基于 Compose Multiplatform 与 %1$s 构建</string>
+
+    <string name="common_back">返回</string>
+    <string name="common_retry">重试</string>
+    <string name="common_edit">编辑</string>
+    <string name="common_upload_file">上传文件</string>
+    <string name="common_download">下载</string>
+    <string name="common_filter">筛选</string>
+    <string name="files_root_directory">根目录</string>
+
+    <string name="translate_source_xml_label">源 strings.xml</string>
+    <string name="translate_target_xml_optional">已有目标 XML（可留空）</string>
+    <string name="translate_result_preview">结果预览</string>
+    <string name="translate_source_lang">源语言</string>
+    <string name="translate_target_lang">目标语言</string>
 
     <string name="error_no_vendor_for_target">没有翻译服务支持目标语言：%1$s</string>
     <string name="error_network">网络错误：%1$s</string>

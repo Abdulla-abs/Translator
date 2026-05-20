@@ -48,7 +48,20 @@ import `fun`.abbas.android_res_translator.ui.theme.AppCodeSmallTextStyle
 import `fun`.abbas.android_res_translator.ui.theme.AppLabelCapsTextStyle
 import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
 import androidrestranslator.composeapp.generated.resources.Res
+import androidrestranslator.composeapp.generated.resources.about_acknowledgments
+import androidrestranslator.composeapp.generated.resources.about_building_together
+import androidrestranslator.composeapp.generated.resources.about_chip_production_ready
+import androidrestranslator.composeapp.generated.resources.about_footer_built
+import androidrestranslator.composeapp.generated.resources.about_footer_tagline
+import androidrestranslator.composeapp.generated.resources.about_free_open_source
+import androidrestranslator.composeapp.generated.resources.about_hero_version
+import androidrestranslator.composeapp.generated.resources.about_kotlin_version
 import androidrestranslator.composeapp.generated.resources.about_licenses_title
+import androidrestranslator.composeapp.generated.resources.about_open_source_body
+import androidrestranslator.composeapp.generated.resources.about_open_source_title
+import androidrestranslator.composeapp.generated.resources.about_view_all_licenses
+import androidrestranslator.composeapp.generated.resources.about_view_github
+import androidrestranslator.composeapp.generated.resources.app_name
 import androidrestranslator.composeapp.generated.resources.common_close
 import org.jetbrains.compose.resources.stringResource
 import `fun`.abbas.android_res_translator.ui.theme.appCodeTextStyle
@@ -135,14 +148,14 @@ private fun AboutHeroText(
         horizontalAlignment = align,
     ) {
         Text(
-            "KMP Translator",
+            stringResource(Res.string.app_name),
             style = MaterialTheme.typography.displayLarge,
             color = colors.onSurface,
             fontWeight = FontWeight.Bold,
             textAlign = if (centered) TextAlign.Center else TextAlign.Start,
         )
         Text(
-            "Version ${appVersionLabel()} (Stable Build)",
+            stringResource(Res.string.about_hero_version, appVersionLabel()),
             style = appCodeTextStyle(),
             color = colors.onSurfaceVariant.copy(alpha = 0.6f),
             modifier = Modifier.padding(top = AppSpacing.xs),
@@ -159,8 +172,8 @@ private fun AboutHeroText(
                     if (centered) Alignment.CenterHorizontally else Alignment.Start,
                 ),
         ) {
-            AboutStatusChip("Production Ready", colors.primary)
-            AboutStatusChip(AboutContent.KOTLIN_VERSION_LABEL, colors.secondary)
+            AboutStatusChip(stringResource(Res.string.about_chip_production_ready), colors.primary)
+            AboutStatusChip(stringResource(Res.string.about_kotlin_version), colors.secondary)
         }
     }
 }
@@ -219,15 +232,13 @@ private fun AboutOpenSourceCard(
         ) {
             Column {
                 Text(
-                    "The Open Source Project",
+                    stringResource(Res.string.about_open_source_title),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     color = colors.primary,
                 )
                 Text(
-                    "KMP Translator is a community-driven tool designed to bridge the gap between platform-specific " +
-                        "localization and Kotlin Multiplatform efficiency. Our mission is to provide developers with a " +
-                        "seamless, high-performance workflow for internationalizing cross-platform applications.",
+                    stringResource(Res.string.about_open_source_body),
                     style = MaterialTheme.typography.bodyMedium,
                     color = colors.onSurfaceVariant,
                     modifier = Modifier.padding(top = AppSpacing.md),
@@ -242,7 +253,7 @@ private fun AboutOpenSourceCard(
                 horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm),
             ) {
                 Text(
-                    "VIEW ON GITHUB",
+                    stringResource(Res.string.about_view_github),
                     style = AppLabelCapsTextStyle.copy(fontWeight = FontWeight.Black),
                     color = colors.primary,
                 )
@@ -288,12 +299,12 @@ private fun AboutBuildingTogetherCard(modifier: Modifier = Modifier) {
                         .padding(AppSpacing.lg),
             ) {
                 Text(
-                    "BUILDING TOGETHER",
+                    stringResource(Res.string.about_building_together),
                     style = AppLabelCapsTextStyle.copy(fontWeight = FontWeight.Black),
                     color = colors.secondary,
                 )
                 Text(
-                    "100% Free and Open Source",
+                    stringResource(Res.string.about_free_open_source),
                     style = MaterialTheme.typography.headlineSmall,
                     color = colors.onSurface,
                     fontWeight = FontWeight.Black,
@@ -316,7 +327,7 @@ fun AboutLicensesSection(modifier: Modifier = Modifier) {
         ) {
             Icon(Icons.Default.VerifiedUser, contentDescription = null, tint = colors.primary, modifier = Modifier.size(26.dp))
             Text(
-                "Open Source Licenses",
+                stringResource(Res.string.about_licenses_title),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
             )
@@ -357,7 +368,7 @@ fun AboutLicensesSection(modifier: Modifier = Modifier) {
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Text(
-                    "VIEW ALL LICENSES",
+                    stringResource(Res.string.about_view_all_licenses),
                     style = AppLabelCapsTextStyle.copy(fontWeight = FontWeight.Black),
                     color = colors.primary,
                 )
@@ -440,7 +451,7 @@ fun AboutAcknowledgmentsSection(modifier: Modifier = Modifier) {
                 if (stacked) {
                     Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
                         Text(
-                            "Project Acknowledgments",
+                            stringResource(Res.string.about_acknowledgments),
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold,
                         )
@@ -453,7 +464,7 @@ fun AboutAcknowledgmentsSection(modifier: Modifier = Modifier) {
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            "Project Acknowledgments",
+                            stringResource(Res.string.about_acknowledgments),
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold,
                         )
@@ -555,14 +566,14 @@ fun AboutFooterSection(modifier: Modifier = Modifier) {
             modifier = Modifier.size(20.dp),
         )
         Text(
-            "Designed with care for the Kotlin Community",
+            stringResource(Res.string.about_footer_tagline),
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Bold,
             color = colors.onSurface.copy(alpha = 0.4f),
             textAlign = TextAlign.Center,
         )
         Text(
-            "Built with Compose Multiplatform & ${AboutContent.KOTLIN_VERSION_LABEL}",
+            stringResource(Res.string.about_footer_built, stringResource(Res.string.about_kotlin_version)),
             style = AppLabelCapsTextStyle.copy(fontWeight = FontWeight.Black),
             color = colors.onSurfaceVariant.copy(alpha = 0.4f),
             textAlign = TextAlign.Center,

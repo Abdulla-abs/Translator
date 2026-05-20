@@ -37,7 +37,13 @@ import `fun`.abbas.android_res_translator.ui.settings.ConsumerMode
 import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
 import kotlinx.coroutines.launch
 import androidrestranslator.composeapp.generated.resources.Res
+import androidrestranslator.composeapp.generated.resources.common_back
 import androidrestranslator.composeapp.generated.resources.translate_file_detail
+import androidrestranslator.composeapp.generated.resources.translate_result_preview
+import androidrestranslator.composeapp.generated.resources.translate_source_lang
+import androidrestranslator.composeapp.generated.resources.translate_source_xml_label
+import androidrestranslator.composeapp.generated.resources.translate_target_lang
+import androidrestranslator.composeapp.generated.resources.translate_target_xml_optional
 import androidrestranslator.composeapp.generated.resources.translate_read_source_xml
 import androidrestranslator.composeapp.generated.resources.translate_save_as_file
 import androidrestranslator.composeapp.generated.resources.translate_to_merged_xml
@@ -80,15 +86,15 @@ internal fun TranslateFileTab(
         onBack?.let { back ->
             Row {
                 IconButton(onClick = back) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.common_back))
                 }
                 Text(stringResource(Res.string.translate_file_detail), style = MaterialTheme.typography.titleMedium)
             }
         }
         AppSectionCard {
-            AppOutlinedField(from, { from = it }, "源语言")
+            AppOutlinedField(from, { from = it }, stringResource(Res.string.translate_source_lang))
             Spacer(Modifier.height(AppSpacing.sm))
-            AppOutlinedField(to, { to = it }, "目标语言")
+            AppOutlinedField(to, { to = it }, stringResource(Res.string.translate_target_lang))
             Spacer(Modifier.height(AppSpacing.md))
             AppPrimaryButton(
                 onClick = { xmlFileAccess.launchPickXml { r: Result<String> -> r.onSuccess { sourceXml = it } } },
@@ -100,7 +106,7 @@ internal fun TranslateFileTab(
             AppOutlinedField(
                 value = sourceXml,
                 onValueChange = { sourceXml = it },
-                label = "源 strings.xml",
+                label = stringResource(Res.string.translate_source_xml_label),
                 minLines = 4,
                 singleLine = false,
                 useMonospace = true,
@@ -109,7 +115,7 @@ internal fun TranslateFileTab(
             AppOutlinedField(
                 value = targetXml,
                 onValueChange = { targetXml = it },
-                label = "已有目标 XML（可留空）",
+                label = stringResource(Res.string.translate_target_xml_optional),
                 minLines = 2,
                 singleLine = false,
                 useMonospace = true,
@@ -157,7 +163,7 @@ internal fun TranslateFileTab(
             AppOutlinedField(
                 value = output,
                 onValueChange = {},
-                label = "结果预览",
+                label = stringResource(Res.string.translate_result_preview),
                 minLines = 4,
                 singleLine = false,
                 readOnly = true,

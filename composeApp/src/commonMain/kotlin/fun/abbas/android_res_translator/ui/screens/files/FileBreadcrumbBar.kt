@@ -25,6 +25,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import `fun`.abbas.android_res_translator.ui.theme.AppCodeSmallTextStyle
 import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
+import androidrestranslator.composeapp.generated.resources.Res
+import androidrestranslator.composeapp.generated.resources.common_filter
+import androidrestranslator.composeapp.generated.resources.files_root_directory
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun FileBreadcrumbBar(
@@ -52,7 +56,7 @@ fun FileBreadcrumbBar(
             ) {
                 Icon(
                     Icons.Default.Home,
-                    contentDescription = "Root Directory",
+                    contentDescription = stringResource(Res.string.files_root_directory),
                     tint = colors.primary,
                     modifier = Modifier.padding(8.dp).size(20.dp),
                 )
@@ -106,7 +110,7 @@ fun FileBreadcrumbBar(
             }
         }
         IconButton(onClick = onFilterClick) {
-            Icon(Icons.Default.FilterList, contentDescription = "Filter", tint = colors.onSurfaceVariant)
+            Icon(Icons.Default.FilterList, contentDescription = stringResource(Res.string.common_filter), tint = colors.onSurfaceVariant)
         }
     }
 }
