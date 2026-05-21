@@ -32,6 +32,9 @@
     <string name="quick_translate_title">Quick Translate</string>
     <string name="quick_translate_placeholder">Paste strings or enter text...</string>
     <string name="quick_translate_button">Translate</string>
+    <string name="quick_translate_copy">Copy</string>
+    <string name="quick_translate_copy_content_description">Copy translation result</string>
+    <string name="quick_translate_copied_snackbar">Translation result copied to clipboard</string>
     <string name="engine_picker_title">Select translation engine</string>
     <string name="language_picker_source_title">Select source language</string>
     <string name="language_picker_target_title">Select target language</string>

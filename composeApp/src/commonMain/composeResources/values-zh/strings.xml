@@ -32,6 +32,9 @@
     <string name="quick_translate_title">快速翻译</string>
     <string name="quick_translate_placeholder">粘贴字符串或输入文本…</string>
     <string name="quick_translate_button">翻译</string>
+    <string name="quick_translate_copy">复制</string>
+    <string name="quick_translate_copy_content_description">复制翻译结果</string>
+    <string name="quick_translate_copied_snackbar">翻译结果已复制到剪贴板</string>
     <string name="engine_picker_title">选择翻译引擎</string>
     <string name="language_picker_source_title">选择源语言</string>
     <string name="language_picker_target_title">选择目标语言</string>

@@ -19,12 +19,16 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoFixHigh
 import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -52,8 +56,12 @@ import androidrestranslator.composeapp.generated.resources.Res
 import androidrestranslator.composeapp.generated.resources.language_picker_source_title
 import androidrestranslator.composeapp.generated.resources.language_picker_target_title
 import androidrestranslator.composeapp.generated.resources.quick_translate_button
+import androidrestranslator.composeapp.generated.resources.quick_translate_copy
+import androidrestranslator.composeapp.generated.resources.quick_translate_copy_content_description
+import androidrestranslator.composeapp.generated.resources.quick_translate_copied_snackbar
 import androidrestranslator.composeapp.generated.resources.quick_translate_placeholder
 import androidrestranslator.composeapp.generated.resources.quick_translate_title
+import `fun`.abbas.android_res_translator.ui.platform.rememberCopyToClipboardHandler
 import org.jetbrains.compose.resources.stringResource
 import `fun`.abbas.android_res_translator.ui.translation.ActiveTranslationEngine
 import `fun`.abbas.android_res_translator.ui.translation.LanguagePickerCatalog
@@ -80,8 +88,49 @@ fun QuickTranslateSection(
     var loading by remember { mutableStateOf(false) }
     var editingLang by remember { mutableStateOf<LangEdit?>(null) }
     var showEnginePicker by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val copyToClipboard = rememberCopyToClipboardHandler()
+    val copiedSnackbarMessage = stringResource(Res.string.quick_translate_copied_snackbar)
 
     fun preferredVendorName(): String? = selectedEngine?.vendorName
+
+    fun copyResultWithSnackbar(text: String) {
+        val trimmed = text.trim()
+        if (trimmed.isEmpty()) return
+        copyToClipboard(trimmed)
+        scope.launch {
+            snackbarHostState.showSnackbar(copiedSnackbarMessage)
+        }
+    }
+
+    fun performTranslate() {
+        error = null
+        loading = true
+        scope.launch {
+            try {
+                when (
+                    val o =
+                        services.translatePlainText(
+                            input.trim(),
+                            from.trim(),
+                            to.trim(),
+                            preferredVendorName(),
+                        )
+                ) {
+                    is TranslationOutcome.Ok -> {
+                        output = o.value.translatedText
+                        copyResultWithSnackbar(o.value.translatedText)
+                    }
+                    is TranslationOutcome.Err -> {
+                        error = o.failure.toUserMessage(snap.uiLocale)
+                        output = ""
+                    }
+                }
+            } finally {
+                loading = false
+            }
+        }
+    }
 
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -94,7 +143,8 @@ fun QuickTranslateSection(
             )
         }
 
-        AppGlassCard {
+        Box(Modifier.fillMaxWidth()) {
+            AppGlassCard {
             Box(Modifier.fillMaxWidth()) {
                 Box(
                     modifier =
@@ -130,31 +180,8 @@ fun QuickTranslateSection(
                                 loading = loading,
                                 input = input,
                                 onEditLang = { editingLang = LangEdit.Target },
-                                onTranslate = {
-                                    error = null
-                                    loading = true
-                                    scope.launch {
-                                        try {
-                                            when (
-                                                val o =
-                                                    services.translatePlainText(
-                                                        input.trim(),
-                                                        from.trim(),
-                                                        to.trim(),
-                                                        preferredVendorName(),
-                                                    )
-                                            ) {
-                                                is TranslationOutcome.Ok -> output = o.value.translatedText
-                                                is TranslationOutcome.Err -> {
-                                                    error = o.failure.toUserMessage(snap.uiLocale)
-                                                    output = ""
-                                                }
-                                            }
-                                        } finally {
-                                            loading = false
-                                        }
-                                    }
-                                },
+                                onTranslate = ::performTranslate,
+                                onCopy = { copyResultWithSnackbar(output) },
                                 modifier = Modifier.weight(1f),
                             )
                         }
@@ -175,31 +202,8 @@ fun QuickTranslateSection(
                                 loading = loading,
                                 input = input,
                                 onEditLang = { editingLang = LangEdit.Target },
-                                onTranslate = {
-                                    error = null
-                                    loading = true
-                                    scope.launch {
-                                        try {
-                                            when (
-                                                val o =
-                                                    services.translatePlainText(
-                                                        input.trim(),
-                                                        from.trim(),
-                                                        to.trim(),
-                                                        preferredVendorName(),
-                                                    )
-                                            ) {
-                                                is TranslationOutcome.Ok -> output = o.value.translatedText
-                                                is TranslationOutcome.Err -> {
-                                                    error = o.failure.toUserMessage(snap.uiLocale)
-                                                    output = ""
-                                                }
-                                            }
-                                        } finally {
-                                            loading = false
-                                        }
-                                    }
-                                },
+                                onTranslate = ::performTranslate,
+                                onCopy = { copyResultWithSnackbar(output) },
                             )
                         }
                     }
@@ -215,6 +219,14 @@ fun QuickTranslateSection(
                 Spacer(Modifier.height(AppSpacing.sm))
                 Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
             }
+            }
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier =
+                    Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(AppSpacing.md),
+            )
         }
     }
 
@@ -321,9 +333,11 @@ private fun QuickTranslateTargetColumn(
     input: String,
     onEditLang: () -> Unit,
     onTranslate: () -> Unit,
+    onCopy: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = MaterialTheme.colorScheme
+    val canCopy = output.isNotBlank() && !loading
     Column(modifier, verticalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
         QuickTranslateLangHeader(label = "TARGET", langCode = to.ifBlank { "zh" }, onEditLang = onEditLang)
         SelectionContainer {
@@ -357,8 +371,24 @@ private fun QuickTranslateTargetColumn(
         }
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End,
+            horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm, Alignment.End),
         ) {
+            OutlinedButton(
+                onClick = onCopy,
+                enabled = canCopy,
+                shape = RoundedCornerShape(999.dp),
+            ) {
+                Icon(
+                    Icons.Default.ContentCopy,
+                    contentDescription = stringResource(Res.string.quick_translate_copy_content_description),
+                    modifier = Modifier.size(18.dp),
+                )
+                Text(
+                    stringResource(Res.string.quick_translate_copy),
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(start = AppSpacing.xs),
+                )
+            }
             Button(
                 onClick = onTranslate,
                 enabled = !loading && input.isNotBlank(),
