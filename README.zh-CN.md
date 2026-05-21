@@ -17,23 +17,23 @@
 
 ### Desktop（Windows）
 
-| Dashboard | Files | Settings |
-|:---:|:---:|:---:|
-| ![Dashboard](screenshot/windows/w_dashboard.png) | ![Files](screenshot/windows/w_files.png) | ![Settings](screenshot/windows/w_settings.png) |
+| Dashboard | Files |
+|:---:|:---:|
+| ![Dashboard](screenshot/windows/w_dashboard.png) | ![Files](screenshot/windows/w_files.png) |
 
-| About |
-|:---:|
-| ![About](screenshot/windows/w_about.png) |
+| About | Settings |
+|:---:|:---:|
+| ![About](screenshot/windows/w_about.png) | ![Settings](screenshot/windows/w_settings.png) |
 
 ### Android
 
-| Dashboard | Files | Settings |
-|:---:|:---:|:---:|
-| ![Dashboard](screenshot/android/a_dashboard.jpg) | ![Files](screenshot/android/a_files.jpg) | ![Settings](screenshot/android/a_settings.jpg) |
+| Dashboard | Files |
+|:---:|:---:|
+| ![Dashboard](screenshot/android/a_dashboard.jpg) | ![Files](screenshot/android/a_files.jpg) |
 
-| About |
-|:---:|
-| ![About](screenshot/android/a_about.jpg) |
+| About | Settings |
+|:---:|:---:|
+| ![About](screenshot/android/a_about.jpg) | ![Settings](screenshot/android/a_settings.jpg) |
 
 ---
 
