@@ -15,13 +15,13 @@ class LanguageDisplayNamesTest {
 
     @Test
     fun formatLanguageLabelIncludesChineseNameForObscureCode() {
-        assertEquals("阿布哈兹语 (AB)", formatLanguageLabel("ab"))
+        assertEquals("(AB)阿布哈兹语", formatLanguageLabel("ab"))
     }
 
     @Test
     fun commonCodesStillWork() {
-        assertEquals("简体中文 (ZH)", formatLanguageLabel("zh"))
-        assertEquals("自动识别 (AUTO)", formatLanguageLabel("auto"))
+        assertEquals("(ZH)简体中文", formatLanguageLabel("zh"))
+        assertEquals("(AUTO)自动识别", formatLanguageLabel("auto"))
     }
 
     @Test

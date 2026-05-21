@@ -262,7 +262,11 @@ fun FileEditorScreen(
                 if (which == LangEdit.Source) {
                     controller.setTranslationLanguages(
                         sourceLang = code,
-                        targetLang = state.targetLang,
+                        targetLang =
+                            LanguagePickerCatalog.adjustTargetWhenSourceEqualsTarget(
+                                code,
+                                state.targetLang,
+                            ),
                     )
                 } else {
                     controller.setTranslationLanguages(

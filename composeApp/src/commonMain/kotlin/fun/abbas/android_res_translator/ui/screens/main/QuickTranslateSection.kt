@@ -255,7 +255,10 @@ fun QuickTranslateSection(
             onDismiss = { editingLang = null },
             onSelect = { code ->
                 when (which) {
-                    LangEdit.Source -> from = code
+                    LangEdit.Source -> {
+                        from = code
+                        to = LanguagePickerCatalog.adjustTargetWhenSourceEqualsTarget(code, to)
+                    }
                     LangEdit.Target -> to = code
                 }
             },
