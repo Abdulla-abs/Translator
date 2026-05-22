@@ -38,6 +38,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import `fun`.abbas.android_res_translator.ui.components.FileProjectCard
+import `fun`.abbas.android_res_translator.ui.files.DroppedXmlFile
+import `fun`.abbas.android_res_translator.ui.files.rememberUploadXmlDropModifier
 import `fun`.abbas.android_res_translator.ui.theme.AppLabelCapsTextStyle
 import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
 import androidrestranslator.composeapp.generated.resources.Res
@@ -56,6 +58,7 @@ fun FileProjectsSection(
     repository: TranslationProjectRepository,
     onViewAllClick: () -> Unit,
     onUploadClick: () -> Unit,
+    onUploadDrop: (List<DroppedXmlFile>) -> Unit,
     onProjectClick: (RecentXmlProject) -> Unit,
     onDeleteProject: (RecentXmlProject) -> Unit,
     modifier: Modifier = Modifier,
@@ -111,7 +114,11 @@ fun FileProjectsSection(
                                             onClick = { onProjectClick(cell.project) },
                                             onLongClick = { projectPendingDelete = cell.project },
                                         )
-                                    Cell.Upload -> UploadXmlCard(onClick = onUploadClick)
+                                    Cell.Upload ->
+                                        UploadXmlCard(
+                                            onClick = onUploadClick,
+                                            onDrop = onUploadDrop,
+                                        )
                                 }
                             }
                         }
@@ -159,15 +166,20 @@ private sealed interface Cell {
 }
 
 @Composable
-private fun UploadXmlCard(onClick: () -> Unit) {
+private fun UploadXmlCard(
+    onClick: () -> Unit,
+    onDrop: (List<DroppedXmlFile>) -> Unit,
+) {
     val colors = MaterialTheme.colorScheme
+    val dropModifier = rememberUploadXmlDropModifier(onDrop)
     Surface(
         onClick = onClick,
         modifier =
             Modifier
                 .fillMaxWidth()
                 .height(168.dp)
-                .dashedRoundRectBorder(colors.outlineVariant.copy(alpha = 0.35f)),
+                .dashedRoundRectBorder(colors.outlineVariant.copy(alpha = 0.35f))
+                .then(dropModifier),
         shape = RoundedCornerShape(16.dp),
         color = colors.surfaceContainer.copy(alpha = 0.2f),
     ) {

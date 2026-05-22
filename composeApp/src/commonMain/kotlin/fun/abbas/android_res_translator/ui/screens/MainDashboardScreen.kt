@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import `fun`.abbas.android_res_translator.ui.TranslationServices
 import `fun`.abbas.android_res_translator.ui.XmlFileAccess
+import `fun`.abbas.android_res_translator.ui.files.DroppedXmlFile
 import `fun`.abbas.android_res_translator.ui.screens.main.DashboardInsightSection
 import `fun`.abbas.android_res_translator.ui.screens.main.FileProjectsSection
 import `fun`.abbas.android_res_translator.persistence.TranslationProjectFileStore
@@ -51,15 +52,25 @@ fun MainDashboardScreen(
     var uploadCounter by remember { mutableIntStateOf(0) }
     var mode by remember { mutableStateOf<DashboardUiMode>(DashboardUiMode.Home) }
 
-    fun onUploadXml(xml: String) {
-        uploadCounter += 1
-        val name = if (uploadCounter == 1) "strings.xml" else "strings_$uploadCounter.xml"
+    fun onUploadXml(xml: String, displayName: String) {
         projectRepository.addOrUpdateFromUpload(
             sourceXml = xml,
-            displayName = name,
+            displayName = displayName,
             sourceLang = snap.defaultSourceLang,
             targetLang = snap.defaultTargetLang,
         )
+    }
+
+    fun onUploadDropped(files: List<DroppedXmlFile>) {
+        files.forEach { file ->
+            onUploadXml(file.content, file.displayName)
+        }
+    }
+
+    fun onUploadPicked(xml: String) {
+        uploadCounter += 1
+        val name = if (uploadCounter == 1) "strings.xml" else "strings_$uploadCounter.xml"
+        onUploadXml(xml, name)
     }
 
     val projects by projectRepository.projects.collectAsState()
@@ -131,9 +142,10 @@ fun MainDashboardScreen(
                     onViewAllClick = onNavigateToFiles,
                     onUploadClick = {
                         xmlFileAccess.launchPickXml { result ->
-                            result.onSuccess(::onUploadXml)
+                            result.onSuccess(::onUploadPicked)
                         }
                     },
+                    onUploadDrop = ::onUploadDropped,
                     onProjectClick = { mode = DashboardUiMode.Editor(it.id) },
                     onDeleteProject = { project ->
                         editorControllerStore.release(project.id)
