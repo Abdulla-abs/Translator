@@ -1,5 +1,6 @@
 package `fun`.abbas.android_res_translator.ui.screens.fileeditor
 
+import `fun`.abbas.android_res_translator.core.resources.planner.TranslationWorkflowMode
 import `fun`.abbas.android_res_translator.ui.TranslationServices
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -24,6 +25,10 @@ class FileEditorControllerStore(
         sourceXml: String,
         initialSession: FileEditorSessionSnapshot? = null,
         resultPath: String? = null,
+        workflowMode: TranslationWorkflowMode = TranslationWorkflowMode.FULL,
+        targetBaselineXml: String? = null,
+        forceTranslation: Boolean = false,
+        onTargetBaselinePersist: ((String) -> Unit)? = null,
         onStateChange: ((FileEditorState) -> Unit)? = null,
         onPersistResult: (() -> Unit)? = null,
     ): FileEditorController {
@@ -45,6 +50,10 @@ class FileEditorControllerStore(
                 sourceXml = sourceXml,
                 initialSession = initialSession,
                 resultPath = resultPath,
+                workflowMode = workflowMode,
+                targetBaselineXml = targetBaselineXml,
+                forceTranslation = forceTranslation,
+                onTargetBaselinePersist = onTargetBaselinePersist,
                 onPersistResult = onPersistResult,
             )
         controllers[key] = controller

@@ -10,11 +10,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FolderZip
-import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -29,25 +26,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import `fun`.abbas.android_res_translator.ui.components.FileProjectCard
+import `fun`.abbas.android_res_translator.ui.components.UploadXmlCard
 import `fun`.abbas.android_res_translator.ui.files.DroppedXmlFile
-import `fun`.abbas.android_res_translator.ui.files.rememberUploadXmlDropModifier
 import `fun`.abbas.android_res_translator.ui.theme.AppLabelCapsTextStyle
 import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
 import androidrestranslator.composeapp.generated.resources.Res
 import androidrestranslator.composeapp.generated.resources.common_cancel
 import androidrestranslator.composeapp.generated.resources.common_delete
 import androidrestranslator.composeapp.generated.resources.dashboard_file_projects_title
-import androidrestranslator.composeapp.generated.resources.dashboard_upload_hint
-import androidrestranslator.composeapp.generated.resources.dashboard_upload_xml
+import androidrestranslator.composeapp.generated.resources.dashboard_upload_hint_full
+import androidrestranslator.composeapp.generated.resources.dashboard_upload_hint_incremental
+import androidrestranslator.composeapp.generated.resources.dashboard_upload_xml_full
+import androidrestranslator.composeapp.generated.resources.dashboard_upload_xml_incremental
 import androidrestranslator.composeapp.generated.resources.dashboard_view_all
 import androidrestranslator.composeapp.generated.resources.file_projects_delete_message
 import androidrestranslator.composeapp.generated.resources.file_projects_delete_title
@@ -57,8 +51,10 @@ import org.jetbrains.compose.resources.stringResource
 fun FileProjectsSection(
     repository: TranslationProjectRepository,
     onViewAllClick: () -> Unit,
-    onUploadClick: () -> Unit,
-    onUploadDrop: (List<DroppedXmlFile>) -> Unit,
+    onIncrementalUploadClick: () -> Unit,
+    onFullUploadClick: () -> Unit,
+    onIncrementalDrop: (List<DroppedXmlFile>) -> Unit,
+    onFullDrop: (List<DroppedXmlFile>) -> Unit,
     onProjectClick: (RecentXmlProject) -> Unit,
     onDeleteProject: (RecentXmlProject) -> Unit,
     modifier: Modifier = Modifier,
@@ -98,7 +94,8 @@ fun FileProjectsSection(
                     maxWidth >= 600.dp -> 2
                     else -> 1
                 }
-            val cells = projects.map { Cell.Project(it) } + Cell.Upload
+            val cells =
+                projects.map { Cell.Project(it) } + Cell.UploadFull + Cell.UploadIncremental
             Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
                 cells.chunked(columns).forEach { row ->
                     Row(
@@ -114,10 +111,19 @@ fun FileProjectsSection(
                                             onClick = { onProjectClick(cell.project) },
                                             onLongClick = { projectPendingDelete = cell.project },
                                         )
-                                    Cell.Upload ->
+                                    Cell.UploadFull ->
                                         UploadXmlCard(
-                                            onClick = onUploadClick,
-                                            onDrop = onUploadDrop,
+                                            titleRes = Res.string.dashboard_upload_xml_full,
+                                            hintRes = Res.string.dashboard_upload_hint_full,
+                                            onClick = onFullUploadClick,
+                                            onDrop = onFullDrop,
+                                        )
+                                    Cell.UploadIncremental ->
+                                        UploadXmlCard(
+                                            titleRes = Res.string.dashboard_upload_xml_incremental,
+                                            hintRes = Res.string.dashboard_upload_hint_incremental,
+                                            onClick = onIncrementalUploadClick,
+                                            onDrop = onIncrementalDrop,
                                         )
                                 }
                             }
@@ -162,61 +168,6 @@ fun FileProjectsSection(
 
 private sealed interface Cell {
     data class Project(val project: RecentXmlProject) : Cell
-    data object Upload : Cell
+    data object UploadIncremental : Cell
+    data object UploadFull : Cell
 }
-
-@Composable
-private fun UploadXmlCard(
-    onClick: () -> Unit,
-    onDrop: (List<DroppedXmlFile>) -> Unit,
-) {
-    val colors = MaterialTheme.colorScheme
-    val dropModifier = rememberUploadXmlDropModifier(onDrop)
-    Surface(
-        onClick = onClick,
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .height(168.dp)
-                .dashedRoundRectBorder(colors.outlineVariant.copy(alpha = 0.35f))
-                .then(dropModifier),
-        shape = RoundedCornerShape(16.dp),
-        color = colors.surfaceContainer.copy(alpha = 0.2f),
-    ) {
-        Column(
-            modifier = Modifier.padding(AppSpacing.lg),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            Surface(shape = CircleShape, color = colors.surfaceContainerHigh, modifier = Modifier.size(48.dp)) {
-                Icon(
-                    Icons.Default.UploadFile,
-                    contentDescription = null,
-                    modifier = Modifier.padding(12.dp),
-                    tint = colors.outline,
-                )
-            }
-            Spacer(Modifier.height(AppSpacing.sm))
-            Text(stringResource(Res.string.dashboard_upload_xml), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
-            Text(stringResource(Res.string.dashboard_upload_hint), style = MaterialTheme.typography.bodySmall, color = colors.outline)
-        }
-    }
-}
-
-private fun Modifier.dashedRoundRectBorder(
-    color: Color,
-    cornerRadius: androidx.compose.ui.unit.Dp = 16.dp,
-    strokeWidth: androidx.compose.ui.unit.Dp = 2.dp,
-): Modifier =
-    drawBehind {
-        val radius = cornerRadius.toPx()
-        drawRoundRect(
-            color = color,
-            style =
-                Stroke(
-                    width = strokeWidth.toPx(),
-                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(12f, 8f), 0f),
-                ),
-            cornerRadius = CornerRadius(radius, radius),
-        )
-    }

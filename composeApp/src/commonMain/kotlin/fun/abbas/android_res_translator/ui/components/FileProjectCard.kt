@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import `fun`.abbas.android_res_translator.core.resources.planner.TranslationWorkflowMode
 import `fun`.abbas.android_res_translator.ui.screens.main.RecentXmlProject
 import `fun`.abbas.android_res_translator.util.currentEpochMillis
 import `fun`.abbas.android_res_translator.ui.theme.AppCodeSmallTextStyle
@@ -33,6 +34,8 @@ import `fun`.abbas.android_res_translator.ui.theme.AppLabelCapsTextStyle
 import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
 import androidrestranslator.composeapp.generated.resources.Res
 import androidrestranslator.composeapp.generated.resources.file_project_keys_translated
+import androidrestranslator.composeapp.generated.resources.file_project_tag_full
+import androidrestranslator.composeapp.generated.resources.file_project_tag_incremental
 import androidrestranslator.composeapp.generated.resources.file_project_modified_days
 import androidrestranslator.composeapp.generated.resources.file_project_modified_hours
 import androidrestranslator.composeapp.generated.resources.file_project_modified_just_now
@@ -94,11 +97,17 @@ fun FileProjectCard(
                             )
                         }
                         Column(modifier = Modifier.padding(start = AppSpacing.sm)) {
-                            Text(
-                                project.displayName,
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Bold,
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs),
+                            ) {
+                                Text(
+                                    project.displayName,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                                WorkflowModeTag(workflowMode = project.workflowMode)
+                            }
                             Text(
                                 formatModifiedAgo(project.modifiedAtEpochMs),
                                 style = AppCodeSmallTextStyle,
@@ -157,6 +166,38 @@ fun FileProjectCard(
             }
         }
     }
+}
+
+@Composable
+private fun WorkflowModeTag(
+    workflowMode: TranslationWorkflowMode,
+    modifier: Modifier = Modifier,
+) {
+    val colors = MaterialTheme.colorScheme
+    val (label, container, content) =
+        when (workflowMode) {
+            TranslationWorkflowMode.INCREMENTAL ->
+                Triple(
+                    stringResource(Res.string.file_project_tag_incremental),
+                    colors.tertiaryContainer.copy(alpha = 0.35f),
+                    colors.onTertiaryContainer,
+                )
+            TranslationWorkflowMode.FULL ->
+                Triple(
+                    stringResource(Res.string.file_project_tag_full),
+                    colors.secondaryContainer.copy(alpha = 0.35f),
+                    colors.onSecondaryContainer,
+                )
+        }
+    Text(
+        text = label,
+        style = AppLabelCapsTextStyle,
+        color = content,
+        modifier =
+            modifier
+                .background(container, RoundedCornerShape(6.dp))
+                .padding(horizontal = 6.dp, vertical = 2.dp),
+    )
 }
 
 @Composable

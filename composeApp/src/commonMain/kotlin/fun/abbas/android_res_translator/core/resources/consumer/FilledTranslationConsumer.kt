@@ -4,8 +4,8 @@ import `fun`.abbas.android_res_translator.core.resources.model.StringArrayEntry
 import `fun`.abbas.android_res_translator.core.resources.model.StringEntry
 
 /**
- * 增量翻译：与旧工程 `FilledTranslationConsumer` 一致——仅在目标缺少对应 `string` / 整段 `string-array`，
- * 或 `name` 属于 [mustTranslateNames]（强制重译该 string）时翻译。
+ * 增量翻译：目标缺 key / 空 value / 空 array item 时翻译；非空保留。
+ * [mustTranslateNames] 可强制重译指定 string。
  */
 class FilledTranslationConsumer(
     private val mustTranslateNames: Set<String> = emptySet(),
@@ -19,15 +19,15 @@ class FilledTranslationConsumer(
         key: String,
         source: StringEntry,
         target: StringEntry?,
-    ): Boolean = target == null || key in mustTranslateNames
+    ): Boolean = key in mustTranslateNames || IncrementalSlotPolicy.needsTranslateString(target)
 
     override fun shouldTranslateStringArray(
         source: StringArrayEntry,
         target: StringArrayEntry?,
-    ): Boolean = target == null
+    ): Boolean = IncrementalSlotPolicy.needsTranslateStringArray(source, target)
 
     override fun shouldTranslateStringArrayItem(
         sourceItem: String,
         targetItem: String?,
-    ): Boolean = targetItem == null
+    ): Boolean = IncrementalSlotPolicy.needsTranslateStringArrayItem(targetItem)
 }

@@ -1,6 +1,9 @@
 package `fun`.abbas.android_res_translator.ui.screens.fileeditor
 
 import `fun`.abbas.android_res_translator.core.resources.model.StringResourceFile
+import `fun`.abbas.android_res_translator.core.resources.planner.IncrementalTranslationPlanner
+import `fun`.abbas.android_res_translator.core.resources.planner.TranslationWorkflowMode
+import `fun`.abbas.android_res_translator.core.resources.planner.toXmlEntryUiList
 import `fun`.abbas.android_res_translator.core.resources.xml.StringsXmlCodec
 import `fun`.abbas.android_res_translator.core.translation.TranslationDebugLog
 import `fun`.abbas.android_res_translator.core.translation.TranslationOutcome
@@ -30,12 +33,19 @@ class FileEditorController(
     initialSession: FileEditorSessionSnapshot? = null,
     private val resultPath: String? = null,
     private val onPersistResult: (() -> Unit)? = null,
+    private val workflowMode: TranslationWorkflowMode = TranslationWorkflowMode.FULL,
+    private var targetBaselineXml: String? = null,
+    private val forceTranslation: Boolean = false,
+    private val onTargetBaselinePersist: ((String) -> Unit)? = null,
 ) {
     private var parsedFile: StringResourceFile = StringResourceFile()
     private var translationJob: Job? = null
     private var flushResultJob: Job? = null
     private var preferredVendorName: String? = null
     var uiLocale: AppLocale = AppLocale.En
+
+    val hasTargetBaseline: Boolean
+        get() = !targetBaselineXml.isNullOrBlank()
 
     /** 与设置/首页所选翻译引擎一致，见 [ActiveTranslationEngine.vendorName]。 */
     fun setPreferredVendorName(vendorName: String?) {
@@ -58,10 +68,20 @@ class FileEditorController(
     val state: StateFlow<FileEditorState> = _state.asStateFlow()
 
     init {
-        if (initialSession != null && initialSession.entries.isNotEmpty()) {
-            restoreSession(initialSession)
-        } else {
-            load(sourceXml)
+        parsedFile =
+            runCatching { StringsXmlCodec.parse(sourceXml) }
+                .getOrElse { StringResourceFile() }
+        when {
+            initialSession != null && initialSession.entries.isNotEmpty() ->
+                restoreSession(initialSession)
+            workflowMode == TranslationWorkflowMode.INCREMENTAL ->
+                targetBaselineXml?.let { loadIncremental(sourceXml, it) }
+            workflowMode == TranslationWorkflowMode.FULL ->
+                if (hasTargetBaseline) {
+                    attachTargetForFullMode(targetBaselineXml!!, persist = false)
+                } else {
+                    loadFullReplaceFromSource()
+                }
         }
     }
 
@@ -83,6 +103,87 @@ class FileEditorController(
                 isPaused = snapshot.isPaused,
                 isRunning = false,
                 exportMessage = null,
+            )
+        }
+    }
+
+    fun loadIncremental(
+        sourceXml: String,
+        targetXml: String,
+    ) {
+        parsedFile =
+            runCatching { StringsXmlCodec.parse(sourceXml) }
+                .getOrElse { StringResourceFile() }
+        val targetModel =
+            runCatching { StringsXmlCodec.parse(targetXml) }
+                .getOrElse { StringResourceFile() }
+        val planned = IncrementalTranslationPlanner.plan(parsedFile, targetModel, forceTranslation)
+        _state.update {
+            it.copy(
+                entries = planned.toXmlEntryUiList(),
+                exportMessage = null,
+                isPaused = false,
+                isRunning = false,
+            )
+        }
+    }
+
+    fun attachTargetForIncrementalMode(
+        targetXml: String,
+        persist: Boolean = true,
+    ) {
+        targetBaselineXml = targetXml
+        if (persist) {
+            onTargetBaselinePersist?.invoke(targetXml)
+        }
+        loadIncremental(sourceXml, targetXml)
+    }
+
+    fun attachTargetForFullMode(
+        targetXml: String,
+        persist: Boolean = true,
+    ) {
+        targetBaselineXml = targetXml
+        if (persist) {
+            onTargetBaselinePersist?.invoke(targetXml)
+        }
+        parsedFile =
+            runCatching { StringsXmlCodec.parse(sourceXml) }
+                .getOrElse { StringResourceFile() }
+        val planned = IncrementalTranslationPlanner.planFullReplace(parsedFile, forceTranslation)
+        _state.update {
+            it.copy(
+                entries = planned.toXmlEntryUiList(),
+                exportMessage = null,
+                isPaused = false,
+                isRunning = false,
+            )
+        }
+    }
+
+    fun canStartTranslation(): Boolean =
+        when (workflowMode) {
+            TranslationWorkflowMode.INCREMENTAL -> hasTargetBaseline && _state.value.pendingCount > 0
+            TranslationWorkflowMode.FULL -> _state.value.pendingCount > 0
+        }
+
+    fun canExport(): Boolean =
+        when (workflowMode) {
+            TranslationWorkflowMode.INCREMENTAL -> hasTargetBaseline && _state.value.isExportReady
+            TranslationWorkflowMode.FULL -> _state.value.isExportReady
+        }
+
+    private fun loadFullReplaceFromSource() {
+        parsedFile =
+            runCatching { StringsXmlCodec.parse(sourceXml) }
+                .getOrElse { StringResourceFile() }
+        val planned = IncrementalTranslationPlanner.planFullReplace(parsedFile, forceTranslation)
+        _state.update {
+            it.copy(
+                entries = planned.toXmlEntryUiList(),
+                exportMessage = null,
+                isPaused = false,
+                isRunning = false,
             )
         }
     }
@@ -129,6 +230,7 @@ class FileEditorController(
     }
 
     fun onTranslationButtonClick() {
+        if (!canStartTranslation()) return
         val current = _state.value
         when {
             current.isRunning && !current.isPaused -> {
@@ -152,7 +254,7 @@ class FileEditorController(
             s.copy(
                 entries =
                     s.entries.map { e ->
-                        if (e.translatable && e.status is EntryStatus.Completed) {
+                        if (e.translatable && (e.status is EntryStatus.Completed || e.status is EntryStatus.Skipped)) {
                             e.copy(status = EntryStatus.Pending, targetText = null)
                         } else {
                             e
@@ -182,6 +284,8 @@ class FileEditorController(
                         !entry.translatable -> entry.value
                         ui?.status is EntryStatus.Completed && ui.targetText?.isNotBlank() == true ->
                             ui.targetText.orEmpty()
+                        ui?.status is EntryStatus.Skipped && ui.targetText?.isNotBlank() == true ->
+                            ui.targetText.orEmpty()
                         else -> entry.value
                     }
                 entry.copy(value = text)
@@ -198,6 +302,7 @@ class FileEditorController(
     }
 
     private fun startTranslation() {
+        if (!canStartTranslation()) return
         translationJob?.cancel()
         translationJob =
             scope.launch {

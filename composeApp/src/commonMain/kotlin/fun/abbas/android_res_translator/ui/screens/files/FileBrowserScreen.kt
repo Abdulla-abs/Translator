@@ -81,7 +81,7 @@ fun FileBrowserScreen(
                 xmlFileAccess.launchPickXml { result ->
                     result.onSuccess { xml ->
                         val name = "strings_${Random.nextInt(100_000)}.xml"
-                        recentProjects.addOrUpdateFromUpload(
+                        recentProjects.addIncrementalFromUpload(
                             sourceXml = xml,
                             displayName = name,
                             sourceLang = defaultSourceLang,

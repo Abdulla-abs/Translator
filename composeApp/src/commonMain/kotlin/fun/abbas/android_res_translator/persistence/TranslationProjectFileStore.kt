@@ -2,6 +2,9 @@ package `fun`.abbas.android_res_translator.persistence
 
 import `fun`.abbas.android_res_translator.core.resources.model.StringEntry
 import `fun`.abbas.android_res_translator.core.resources.model.StringResourceFile
+import `fun`.abbas.android_res_translator.core.resources.planner.IncrementalTranslationPlanner
+import `fun`.abbas.android_res_translator.core.resources.planner.PlannedEntryAction
+import `fun`.abbas.android_res_translator.core.resources.planner.TranslationWorkflowMode
 import `fun`.abbas.android_res_translator.core.resources.xml.StringsXmlCodec
 import `fun`.abbas.android_res_translator.ui.screens.fileeditor.EntryStatus
 import `fun`.abbas.android_res_translator.ui.screens.fileeditor.FileEditorSessionSnapshot
@@ -16,6 +19,7 @@ import kotlin.time.ExperimentalTime
 object TranslationProjectFileStore {
     private const val SOURCE_FILE = "source.xml"
     private const val RESULT_FILE = "result.xml"
+    private const val TARGET_BASELINE_FILE = "target-baseline.xml"
     private const val INDEX_FILE = "index.json"
 
     fun indexFilePath(): String = "${appTranslationProjectsRoot()}/$INDEX_FILE"
@@ -25,6 +29,22 @@ object TranslationProjectFileStore {
     fun sourcePath(projectId: String): String = "${projectDirectory(projectId)}/$SOURCE_FILE"
 
     fun resultPath(projectId: String): String = "${projectDirectory(projectId)}/$RESULT_FILE"
+
+    fun targetBaselinePath(projectId: String): String = "${projectDirectory(projectId)}/$TARGET_BASELINE_FILE"
+
+    fun writeTargetBaseline(
+        projectId: String,
+        xml: String,
+    ) {
+        writeTextFileAtomic(targetBaselinePath(projectId), xml)
+    }
+
+    fun readTargetBaseline(project: RecentXmlProject): String =
+        if (project.targetBaselinePath.isNotBlank() && fileExists(project.targetBaselinePath)) {
+            readTextFile(project.targetBaselinePath)
+        } else {
+            ""
+        }
 
     fun readIndex(): TranslationProjectIndex {
         val path = indexFilePath()
@@ -36,6 +56,127 @@ object TranslationProjectFileStore {
         ensureDirectory(appTranslationProjectsRoot())
         writeTextFileAtomic(indexFilePath(), encodeIndex(index))
     }
+
+    @OptIn(ExperimentalTime::class)
+    fun createIncrementalProjectFromSource(
+        sourceXml: String,
+        displayName: String,
+        sourceLang: String,
+        targetLang: String,
+    ): RecentXmlProject {
+        val id = "${displayName}_${Random.nextInt(1_000_000)}"
+        val dir = projectDirectory(id)
+        ensureDirectory(dir)
+        val source = sourcePath(id)
+        val result = resultPath(id)
+        writeTextFileAtomic(source, sourceXml)
+        writeTextFileAtomic(result, buildResultTemplate(sourceXml))
+        val total = countTranslatableKeys(sourceXml).coerceAtLeast(1)
+        return RecentXmlProject(
+            id = id,
+            displayName = displayName,
+            modifiedAtEpochMs = Clock.System.now().toEpochMilliseconds(),
+            progressPercent = 0f,
+            translatedKeys = 0,
+            totalKeys = total,
+            isComplete = false,
+            sourceLang = sourceLang,
+            targetLang = targetLang,
+            sourcePath = source,
+            resultPath = result,
+            workflowMode = TranslationWorkflowMode.INCREMENTAL,
+            targetDisplayName = null,
+            hasTargetBaseline = false,
+            targetBaselinePath = "",
+        )
+    }
+
+    @OptIn(ExperimentalTime::class)
+    fun attachIncrementalTarget(
+        project: RecentXmlProject,
+        targetXml: String,
+        targetDisplayName: String,
+    ): RecentXmlProject {
+        val targetPath = targetBaselinePath(project.id)
+        writeTextFileAtomic(targetPath, targetXml)
+        writeTextFileAtomic(project.resultPath, targetXml)
+        val sourceXml = readSourceXml(project)
+        val total =
+            IncrementalTranslationPlanner
+                .plan(
+                    StringsXmlCodec.parse(sourceXml),
+                    StringsXmlCodec.parse(targetXml),
+                    forceTranslation = false,
+                ).count { it.action == PlannedEntryAction.TRANSLATE }
+                .coerceAtLeast(1)
+        return project.copy(
+            targetDisplayName = targetDisplayName,
+            hasTargetBaseline = true,
+            targetBaselinePath = targetPath,
+            totalKeys = total,
+            translatedKeys = 0,
+            progressPercent = 0f,
+            isComplete = false,
+            modifiedAtEpochMs = Clock.System.now().toEpochMilliseconds(),
+        )
+    }
+
+    @OptIn(ExperimentalTime::class)
+    fun createIncrementalProject(
+        sourceXml: String,
+        targetXml: String,
+        sourceDisplayName: String,
+        targetDisplayName: String,
+        sourceLang: String,
+        targetLang: String,
+    ): RecentXmlProject {
+        val id = "${sourceDisplayName}_${Random.nextInt(1_000_000)}"
+        val dir = projectDirectory(id)
+        ensureDirectory(dir)
+        val source = sourcePath(id)
+        val targetPath = targetBaselinePath(id)
+        val result = resultPath(id)
+        writeTextFileAtomic(source, sourceXml)
+        writeTextFileAtomic(targetPath, targetXml)
+        writeTextFileAtomic(result, targetXml)
+        return attachIncrementalTarget(
+            RecentXmlProject(
+                id = id,
+                displayName = sourceDisplayName,
+                modifiedAtEpochMs = Clock.System.now().toEpochMilliseconds(),
+                progressPercent = 0f,
+                translatedKeys = 0,
+                totalKeys = 1,
+                isComplete = false,
+                sourceLang = sourceLang,
+                targetLang = targetLang,
+                sourcePath = source,
+                resultPath = result,
+                workflowMode = TranslationWorkflowMode.INCREMENTAL,
+            ),
+            targetXml = targetXml,
+            targetDisplayName = targetDisplayName,
+        )
+    }
+
+    @OptIn(ExperimentalTime::class)
+    fun createFullProject(
+        sourceXml: String,
+        displayName: String,
+        sourceLang: String,
+        targetLang: String,
+    ): RecentXmlProject =
+        createProjectFromUpload(
+            sourceXml = sourceXml,
+            displayName = displayName,
+            sourceLang = sourceLang,
+            targetLang = targetLang,
+        ).copy(
+            workflowMode = TranslationWorkflowMode.FULL,
+            targetDisplayName = null,
+            hasTargetBaseline = false,
+            targetBaselinePath = "",
+        )
 
     @OptIn(ExperimentalTime::class)
     fun createProjectFromUpload(
@@ -158,6 +299,8 @@ object TranslationProjectFileStore {
                     when {
                         !entry.translatable -> entry.value
                         ui?.status is EntryStatus.Completed && ui.targetText?.isNotBlank() == true ->
+                            ui.targetText.orEmpty()
+                        ui?.status is EntryStatus.Skipped && ui.targetText?.isNotBlank() == true ->
                             ui.targetText.orEmpty()
                         else -> ""
                     }

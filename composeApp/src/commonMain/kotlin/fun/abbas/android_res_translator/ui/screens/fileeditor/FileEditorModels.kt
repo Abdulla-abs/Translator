@@ -7,6 +7,9 @@ sealed interface EntryStatus {
 
     data object Completed : EntryStatus
 
+    /** 增量模式：目标已有非空译文，不调用翻译 API。 */
+    data object Skipped : EntryStatus
+
     data class Error(
         val message: String,
     ) : EntryStatus
@@ -54,18 +57,28 @@ data class FileEditorState(
     val completedCount: Int
         get() = translatableEntries.count { it.status is EntryStatus.Completed }
 
+    /** 无需再译的条目（API 已译完或增量跳过）。 */
+    val finishedCount: Int
+        get() =
+            translatableEntries.count {
+                it.status is EntryStatus.Completed || it.status is EntryStatus.Skipped
+            }
+
     val pendingCount: Int
-        get() = totalCount - completedCount - errorCount
+        get() = translatableEntries.count { it.status is EntryStatus.Pending }
+
+    val skippedCount: Int
+        get() = translatableEntries.count { it.status is EntryStatus.Skipped }
 
     val errorCount: Int
         get() = translatableEntries.count { it.status is EntryStatus.Error }
 
     val progressPercent: Float
-        get() = if (totalCount == 0) 0f else completedCount.toFloat() / totalCount.toFloat()
+        get() = if (totalCount == 0) 0f else finishedCount.toFloat() / totalCount.toFloat()
 
-    /** 全部可翻译条目已完成且无错误，可高亮导出。 */
+    /** 无待译/错误且未在运行时，可导出（含增量已跳过条目）。 */
     val isExportReady: Boolean
-        get() = totalCount > 0 && errorCount == 0 && completedCount >= totalCount && !isRunning
+        get() = totalCount > 0 && errorCount == 0 && pendingCount == 0 && !isRunning
 
     val filteredEntries: List<XmlEntryUi>
         get() {

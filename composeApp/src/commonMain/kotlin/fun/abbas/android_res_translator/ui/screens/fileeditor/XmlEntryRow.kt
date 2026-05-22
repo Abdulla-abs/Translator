@@ -136,6 +136,8 @@ private fun EntryStatusChip(
                 Quad("Translating...", Icons.Default.Schedule, colors.tertiary, colors.tertiary.copy(alpha = 0.1f))
             EntryStatus.Pending ->
                 Quad("Pending", Icons.Default.Schedule, colors.onSurfaceVariant, colors.surfaceContainerHigh)
+            EntryStatus.Skipped ->
+                Quad("Kept", Icons.Default.CheckCircle, colors.onSurfaceVariant, colors.surfaceContainerHigh)
             is EntryStatus.Error ->
                 Quad("Error", Icons.Default.Error, colors.error, colors.error.copy(alpha = 0.1f))
         }

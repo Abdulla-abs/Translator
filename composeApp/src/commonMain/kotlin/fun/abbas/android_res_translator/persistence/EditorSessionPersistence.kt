@@ -73,6 +73,8 @@ private fun XmlEntryUi.toPersisted(): PersistedXmlEntry =
             PersistedXmlEntry(key, sourceText, targetText, "pending", translatable = translatable)
         EntryStatus.Completed ->
             PersistedXmlEntry(key, sourceText, targetText, "completed", translatable = translatable)
+        EntryStatus.Skipped ->
+            PersistedXmlEntry(key, sourceText, targetText, "skipped", translatable = translatable)
         is EntryStatus.Error ->
             PersistedXmlEntry(
                 key,
@@ -92,6 +94,7 @@ private fun PersistedXmlEntry.toUi(): XmlEntryUi =
         status =
             when (statusKind) {
                 "completed" -> EntryStatus.Completed
+                "skipped" -> EntryStatus.Skipped
                 "error" -> EntryStatus.Error(errorMessage.orEmpty())
                 else -> EntryStatus.Pending
             },

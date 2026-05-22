@@ -49,8 +49,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.ui.unit.dp
+import `fun`.abbas.android_res_translator.core.resources.planner.TranslationWorkflowMode
 import `fun`.abbas.android_res_translator.ui.XmlFileAccess
 import `fun`.abbas.android_res_translator.ui.components.AppGlassCard
+import `fun`.abbas.android_res_translator.ui.components.UploadXmlCard
+import `fun`.abbas.android_res_translator.ui.files.DroppedXmlFile
 import `fun`.abbas.android_res_translator.ui.screens.main.LanguagePickerDialog
 import `fun`.abbas.android_res_translator.ui.theme.AppCodeSmallTextStyle
 import `fun`.abbas.android_res_translator.ui.theme.AppControlShape
@@ -67,6 +70,8 @@ import androidrestranslator.composeapp.generated.resources.file_editor_export_co
 import androidrestranslator.composeapp.generated.resources.file_editor_export_confirm_message
 import androidrestranslator.composeapp.generated.resources.file_editor_export_confirm_title
 import androidrestranslator.composeapp.generated.resources.file_editor_export_not_ready
+import androidrestranslator.composeapp.generated.resources.file_editor_upload_hint_target_incremental
+import androidrestranslator.composeapp.generated.resources.file_editor_upload_target_xml
 import androidrestranslator.composeapp.generated.resources.file_editor_exported
 import androidrestranslator.composeapp.generated.resources.file_editor_filter_placeholder
 import androidrestranslator.composeapp.generated.resources.file_editor_header_langs
@@ -87,6 +92,8 @@ fun FileEditorScreen(
     xmlFileAccess: XmlFileAccess,
     uiLocale: AppLocale,
     onBack: () -> Unit,
+    workflowMode: TranslationWorkflowMode = TranslationWorkflowMode.FULL,
+    hasTargetBaseline: Boolean = true,
     onEditorStateChange: ((FileEditorState) -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
@@ -127,6 +134,7 @@ fun FileEditorScreen(
     }
 
     fun onExportClick() {
+        if (workflowMode == TranslationWorkflowMode.INCREMENTAL && !hasTargetBaseline) return
         when {
             state.errorCount > 0 -> showExportWithErrorsConfirm = true
             state.isExportReady -> performExport()
@@ -187,6 +195,22 @@ fun FileEditorScreen(
                             .padding(AppSpacing.gutter),
                     verticalArrangement = Arrangement.spacedBy(AppSpacing.lg),
                 ) {
+                    if (workflowMode == TranslationWorkflowMode.INCREMENTAL && !hasTargetBaseline) {
+                        UploadXmlCard(
+                            titleRes = Res.string.file_editor_upload_target_xml,
+                            hintRes = Res.string.file_editor_upload_hint_target_incremental,
+                            onClick = {
+                                xmlFileAccess.launchPickXml { result ->
+                                    result.onSuccess(controller::attachTargetForIncrementalMode)
+                                }
+                            },
+                            onDrop = { files: List<DroppedXmlFile> ->
+                                files.firstOrNull()?.let { file ->
+                                    controller.attachTargetForIncrementalMode(file.content)
+                                }
+                            },
+                        )
+                    }
                     BoxWithConstraints(Modifier.fillMaxWidth()) {
                         if (maxWidth >= 700.dp) {
                             Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
@@ -201,6 +225,9 @@ fun FileEditorScreen(
                                 )
                                 FileEditorActionsCard(
                                     state = state,
+                                    translationEnabled = controller.canStartTranslation() || state.isRunning,
+                                    exportEnabled =
+                                        workflowMode == TranslationWorkflowMode.FULL || hasTargetBaseline,
                                     onTranslationAction = onTranslationAction,
                                     onExportClick = { onExportClick() },
                                     modifier = Modifier.weight(1f),
@@ -218,6 +245,9 @@ fun FileEditorScreen(
                                 )
                                 FileEditorActionsCard(
                                     state = state,
+                                    translationEnabled = controller.canStartTranslation() || state.isRunning,
+                                    exportEnabled =
+                                        workflowMode == TranslationWorkflowMode.FULL || hasTargetBaseline,
                                     onTranslationAction = onTranslationAction,
                                     onExportClick = { onExportClick() },
                                 )

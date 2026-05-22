@@ -47,7 +47,6 @@ import `fun`.abbas.android_res_translator.ui.components.AppGlassCard
 import `fun`.abbas.android_res_translator.ui.i18n.AppLocale
 import `fun`.abbas.android_res_translator.ui.settings.AppAppearance
 import `fun`.abbas.android_res_translator.ui.settings.AppSettingsSnapshot
-import `fun`.abbas.android_res_translator.ui.settings.ConsumerMode
 import androidrestranslator.composeapp.generated.resources.Res
 import androidrestranslator.composeapp.generated.resources.settings_danger_message
 import androidrestranslator.composeapp.generated.resources.settings_danger_title
@@ -321,11 +320,6 @@ fun SettingsStrategiesCard(
                     onSelect = { appearance -> onDraft(draft.copy(appAppearance = appearance)) },
                 )
 
-                MergeStrategyRow(
-                    selected = draft.consumerMode,
-                    onSelect = { onDraft(draft.copy(consumerMode = it)) },
-                )
-
                 StrategyToggleRow(
                     title = stringResource(Res.string.settings_force_translate),
                     description = stringResource(Res.string.settings_force_translate_hint),
@@ -474,103 +468,6 @@ private fun AppearanceThemeRow(
                 .fillMaxWidth()
                 .height(1.dp)
                 .background(colors.outlineVariant.copy(alpha = 0.25f)),
-    )
-}
-
-@Composable
-private fun MergeStrategyRow(
-    selected: ConsumerMode,
-    onSelect: (ConsumerMode) -> Unit,
-) {
-    val colors = MaterialTheme.colorScheme
-    BoxWithConstraints(Modifier.fillMaxWidth()) {
-        val stacked = maxWidth < 560.dp
-        if (stacked) {
-            Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
-                MergeStrategyCopy()
-                MergeStrategySegmented(selected = selected, onSelect = onSelect)
-            }
-        } else {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                MergeStrategyCopy(modifier = Modifier.weight(1f).padding(end = AppSpacing.md))
-                MergeStrategySegmented(selected = selected, onSelect = onSelect)
-            }
-        }
-    }
-    Spacer(Modifier.height(AppSpacing.sm))
-    Box(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .height(1.dp)
-                .background(colors.outlineVariant.copy(alpha = 0.25f)),
-    )
-}
-
-@Composable
-private fun MergeStrategyCopy(modifier: Modifier = Modifier) {
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)) {
-        Text(stringResource(Res.string.settings_merge_strategy), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
-        Text(
-            stringResource(Res.string.settings_merge_strategy_hint),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
-private fun MergeStrategySegmented(
-    selected: ConsumerMode,
-    onSelect: (ConsumerMode) -> Unit,
-) {
-    val colors = MaterialTheme.colorScheme
-    Row(
-        modifier =
-            Modifier
-                .clip(RoundedCornerShape(12.dp))
-                .background(colors.surfaceContainerHighest.copy(alpha = 0.5f))
-                .border(1.dp, colors.outlineVariant.copy(alpha = 0.35f), RoundedCornerShape(12.dp))
-                .padding(4.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        MergeSegment(
-            label = stringResource(Res.string.settings_merge_incremental),
-            selected = selected == ConsumerMode.FILLED,
-            onClick = { onSelect(ConsumerMode.FILLED) },
-        )
-        MergeSegment(
-            label = stringResource(Res.string.settings_merge_overwrite),
-            selected = selected == ConsumerMode.ALL_REPLACE,
-            onClick = { onSelect(ConsumerMode.ALL_REPLACE) },
-        )
-    }
-}
-
-@Composable
-private fun MergeSegment(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-) {
-    val colors = MaterialTheme.colorScheme
-    val bg = if (selected) colors.secondaryContainer else Color.Transparent
-    val fg = if (selected) colors.onSecondaryContainer else colors.onSurfaceVariant
-    Text(
-        text = label.uppercase(),
-        style = AppLabelCapsTextStyle.copy(fontWeight = FontWeight.Black),
-        color = fg,
-        textAlign = TextAlign.Center,
-        modifier =
-            Modifier
-                .clip(RoundedCornerShape(8.dp))
-                .background(bg)
-                .clickable(onClick = onClick)
-                .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.sm),
     )
 }
 

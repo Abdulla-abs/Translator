@@ -1,5 +1,6 @@
 package `fun`.abbas.android_res_translator.ui.screens.main
 
+import `fun`.abbas.android_res_translator.core.resources.planner.TranslationWorkflowMode
 import `fun`.abbas.android_res_translator.ui.screens.fileeditor.FileEditorState
 import `fun`.abbas.android_res_translator.util.currentEpochMillis
 
@@ -17,11 +18,15 @@ data class RecentXmlProject(
     val sourcePath: String = "",
     /** 磁盘上的 result.xml 绝对路径 */
     val resultPath: String = "",
+    val workflowMode: TranslationWorkflowMode = TranslationWorkflowMode.FULL,
+    val targetDisplayName: String? = null,
+    val hasTargetBaseline: Boolean = false,
+    val targetBaselinePath: String = "",
 )
 
 fun RecentXmlProject.withEditorState(state: FileEditorState): RecentXmlProject {
     val total = state.totalCount.coerceAtLeast(1)
-    val done = state.completedCount
+    val done = state.finishedCount
     return copy(
         progressPercent = if (total == 0) 0f else done.toFloat() / total.toFloat(),
         translatedKeys = done,
@@ -30,8 +35,7 @@ fun RecentXmlProject.withEditorState(state: FileEditorState): RecentXmlProject {
             total > 0 &&
                 !state.isRunning &&
                 state.pendingCount == 0 &&
-                state.errorCount == 0 &&
-                done >= total,
+                state.errorCount == 0,
         modifiedAtEpochMs = currentEpochMillis(),
     )
 }

@@ -65,7 +65,21 @@ class FilledTranslationConsumerTest {
     }
 
     @Test
-    fun filled_skipsStringArrayWhenTargetHasArray() = runTest {
+    fun filled_translatesBlankExistingString() = runTest {
+        val source =
+            StringResourceFile(
+                strings = mapOf("k" to StringEntry("k", "Hello", translatable = true)),
+            )
+        val target =
+            StringResourceFile(
+                strings = mapOf("k" to StringEntry("k", "", translatable = true)),
+            )
+        val out = FilledTranslationConsumer().accept(source, "en", target, "zh", port)
+        assertEquals("[Hello]", out.entries["k"])
+    }
+
+    @Test
+    fun filled_partialArrayItemFill() = runTest {
         val source =
             StringResourceFile(
                 stringArrays =
@@ -77,11 +91,31 @@ class FilledTranslationConsumerTest {
             StringResourceFile(
                 stringArrays =
                     mapOf(
-                        "tabs" to StringArrayEntry("tabs", listOf("keep")),
+                        "tabs" to StringArrayEntry("tabs", listOf("已译", "")),
                     ),
             )
         val out = FilledTranslationConsumer().accept(source, "en", target, "zh", port)
-        assertEquals(listOf("keep"), out.stringArrays["tabs"]?.items)
+        assertEquals(listOf("已译", "[B]"), out.stringArrays["tabs"]?.items)
+    }
+
+    @Test
+    fun filled_skipsStringArrayWhenAllItemsPresent() = runTest {
+        val source =
+            StringResourceFile(
+                stringArrays =
+                    mapOf(
+                        "tabs" to StringArrayEntry("tabs", listOf("A", "B")),
+                    ),
+            )
+        val target =
+            StringResourceFile(
+                stringArrays =
+                    mapOf(
+                        "tabs" to StringArrayEntry("tabs", listOf("keep", "x")),
+                    ),
+            )
+        val out = FilledTranslationConsumer().accept(source, "en", target, "zh", port)
+        assertEquals(listOf("keep", "x"), out.stringArrays["tabs"]?.items)
     }
 
     @Test

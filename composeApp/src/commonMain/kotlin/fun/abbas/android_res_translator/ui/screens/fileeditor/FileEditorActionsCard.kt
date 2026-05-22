@@ -33,6 +33,8 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun FileEditorActionsCard(
     state: FileEditorState,
+    translationEnabled: Boolean = true,
+    exportEnabled: Boolean = true,
     onTranslationAction: () -> Unit,
     onExportClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -61,6 +63,7 @@ fun FileEditorActionsCard(
                 }
             Button(
                 onClick = onTranslationAction,
+                enabled = translationEnabled,
                 modifier = Modifier.fillMaxWidth(),
                 shape = AppControlShape,
                 colors =
@@ -85,6 +88,7 @@ fun FileEditorActionsCard(
             if (state.isExportReady) {
                 Button(
                     onClick = onExportClick,
+                    enabled = exportEnabled,
                     modifier = Modifier.fillMaxWidth(),
                     shape = AppControlShape,
                     colors =
@@ -102,6 +106,7 @@ fun FileEditorActionsCard(
             } else {
                 OutlinedButton(
                     onClick = onExportClick,
+                    enabled = exportEnabled,
                     modifier = Modifier.fillMaxWidth(),
                     shape = AppControlShape,
                     border = BorderStroke(1.dp, colors.outlineVariant),

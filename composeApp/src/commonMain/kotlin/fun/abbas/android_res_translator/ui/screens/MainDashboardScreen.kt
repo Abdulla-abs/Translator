@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -21,17 +22,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import `fun`.abbas.android_res_translator.persistence.TranslationProjectFileStore
 import `fun`.abbas.android_res_translator.ui.TranslationServices
 import `fun`.abbas.android_res_translator.ui.XmlFileAccess
 import `fun`.abbas.android_res_translator.ui.files.DroppedXmlFile
-import `fun`.abbas.android_res_translator.ui.screens.main.DashboardInsightSection
-import `fun`.abbas.android_res_translator.ui.screens.main.FileProjectsSection
-import `fun`.abbas.android_res_translator.persistence.TranslationProjectFileStore
-import `fun`.abbas.android_res_translator.ui.screens.main.QuickTranslateSection
-import `fun`.abbas.android_res_translator.ui.screens.main.TranslationProjectRepository
 import `fun`.abbas.android_res_translator.ui.files.WithFilePermissions
 import `fun`.abbas.android_res_translator.ui.screens.fileeditor.FileEditorControllerStore
 import `fun`.abbas.android_res_translator.ui.screens.fileeditor.FileEditorScreen
+import `fun`.abbas.android_res_translator.ui.screens.main.DashboardInsightSection
+import `fun`.abbas.android_res_translator.ui.screens.main.FileProjectsSection
+import `fun`.abbas.android_res_translator.ui.screens.main.QuickTranslateSection
+import `fun`.abbas.android_res_translator.ui.screens.main.RecentXmlProject
+import `fun`.abbas.android_res_translator.ui.screens.main.TranslationProjectRepository
 import `fun`.abbas.android_res_translator.ui.settings.AppSettingsRepository
 import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
 import `fun`.abbas.android_res_translator.ui.translation.LanguagePickerCatalog
@@ -51,117 +53,193 @@ fun MainDashboardScreen(
     val scroll = rememberScrollState()
     var uploadCounter by remember { mutableIntStateOf(0) }
     var mode by remember { mutableStateOf<DashboardUiMode>(DashboardUiMode.Home) }
+    /** 新建项目后立刻进详情时，projects 列表可能尚未刷新，用此兜底。 */
+    var openingProject by remember { mutableStateOf<RecentXmlProject?>(null) }
 
-    fun onUploadXml(xml: String, displayName: String) {
-        projectRepository.addOrUpdateFromUpload(
-            sourceXml = xml,
-            displayName = displayName,
-            sourceLang = snap.defaultSourceLang,
-            targetLang = snap.defaultTargetLang,
-        )
+    fun openEditor(project: RecentXmlProject) {
+        openingProject = project
+        mode = DashboardUiMode.Editor(project.id)
     }
 
-    fun onUploadDropped(files: List<DroppedXmlFile>) {
-        files.forEach { file ->
-            onUploadXml(file.content, file.displayName)
+    fun onIncrementalUpload(
+        xml: String,
+        displayName: String,
+    ) {
+        val project =
+            projectRepository.addIncrementalFromUpload(
+                sourceXml = xml,
+                displayName = displayName,
+                sourceLang = snap.defaultSourceLang,
+                targetLang = snap.defaultTargetLang,
+            )
+        openEditor(project)
+    }
+
+    fun onIncrementalDrop(files: List<DroppedXmlFile>) {
+        files.firstOrNull()?.let { file ->
+            onIncrementalUpload(file.content, file.displayName)
         }
     }
 
-    fun onUploadPicked(xml: String) {
-        uploadCounter += 1
-        val name = if (uploadCounter == 1) "strings.xml" else "strings_$uploadCounter.xml"
-        onUploadXml(xml, name)
+    fun onFullUpload(
+        xml: String,
+        displayName: String,
+    ) {
+        val project =
+            projectRepository.addFullFromUpload(
+                sourceXml = xml,
+                displayName = displayName,
+                sourceLang = snap.defaultSourceLang,
+                targetLang = snap.defaultTargetLang,
+            )
+        openEditor(project)
+    }
+
+    fun onFullDrop(files: List<DroppedXmlFile>) {
+        files.firstOrNull()?.let { file ->
+            onFullUpload(file.content, file.displayName)
+        }
     }
 
     val projects by projectRepository.projects.collectAsState()
 
     WithFilePermissions {
-    when (val current = mode) {
-        is DashboardUiMode.Editor -> {
-            val project = projects.find { it.id == current.projectId }
-            if (project != null) {
-                val projectId = current.projectId
-                val sourceXml = remember(projectId) { projectRepository.readSourceXml(project) }
-                val initialSession =
-                    remember(projectId) { TranslationProjectFileStore.loadSessionSnapshot(project) }
-                val controller =
-                    remember(projectId, sourceXml) {
-                        editorControllerStore.getOrCreate(
-                            key = projectId,
-                            fileName = project.displayName,
-                            filePath = "recent/$projectId",
-                            sourceLang = project.sourceLang,
-                            targetLang = project.targetLang,
-                            sourceXml = sourceXml,
-                            initialSession = initialSession,
-                            resultPath = project.resultPath,
-                            onStateChange = { editorState ->
-                                projectRepository.syncEditorState(projectId, editorState)
-                            },
-                            onPersistResult = {
-                                editorControllerStore.currentState(projectId)?.let { editorState ->
-                                    projectRepository.syncEditorState(projectId, editorState)
-                                }
-                            },
-                        )
+        when (val current = mode) {
+            is DashboardUiMode.Editor -> {
+                val project =
+                    projects.find { it.id == current.projectId }
+                        ?: openingProject?.takeIf { it.id == current.projectId }
+                if (project != null) {
+                    LaunchedEffect(projects, current.projectId) {
+                        if (projects.any { it.id == current.projectId }) {
+                            openingProject = null
+                        }
                     }
-                FileEditorScreen(
-                    controller = controller,
-                    selectedEngine = selectedEngine,
-                    xmlFileAccess = xmlFileAccess,
-                    uiLocale = snap.uiLocale,
-                    onBack = { mode = DashboardUiMode.Home },
-                    onEditorStateChange = { editorState ->
-                        projectRepository.syncEditorState(projectId, editorState)
-                    },
-                    modifier = modifier,
-                )
-            }
-        }
-
-        DashboardUiMode.Home ->
-    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-            Column(
-                modifier =
-                    Modifier
-                        .widthIn(max = 1280.dp)
-                        .fillMaxSize()
-                        .verticalScroll(scroll)
-                        .padding(AppSpacing.gutter),
-                verticalArrangement = Arrangement.spacedBy(AppSpacing.xl),
-            ) {
-                QuickTranslateSection(
-                    settings = settings,
-                    services = services,
-                    defaultFrom = snap.defaultSourceLang,
-                    defaultTo = snap.defaultTargetLang,
-                )
-                FileProjectsSection(
-                    repository = projectRepository,
-                    onViewAllClick = onNavigateToFiles,
-                    onUploadClick = {
-                        xmlFileAccess.launchPickXml { result ->
-                            result.onSuccess(::onUploadPicked)
+                    val projectId = current.projectId
+                    val sourceXml = remember(projectId) { projectRepository.readSourceXml(project) }
+                    val targetBaseline =
+                        remember(projectId, project.hasTargetBaseline) {
+                            projectRepository.readTargetBaseline(project).takeIf { it.isNotBlank() }
                         }
-                    },
-                    onUploadDrop = ::onUploadDropped,
-                    onProjectClick = { mode = DashboardUiMode.Editor(it.id) },
-                    onDeleteProject = { project ->
-                        editorControllerStore.release(project.id)
-                        projectRepository.deleteProject(project.id)
-                        val currentMode = mode
-                        if (currentMode is DashboardUiMode.Editor && currentMode.projectId == project.id) {
+                    val initialSession =
+                        remember(projectId) { TranslationProjectFileStore.loadSessionSnapshot(project) }
+                    val controller =
+                        remember(projectId, sourceXml, targetBaseline, project.workflowMode) {
+                            editorControllerStore.getOrCreate(
+                                key = projectId,
+                                fileName = project.displayName,
+                                filePath = "recent/$projectId",
+                                sourceLang = project.sourceLang,
+                                targetLang = project.targetLang,
+                                sourceXml = sourceXml,
+                                initialSession = initialSession,
+                                resultPath = project.resultPath,
+                                workflowMode = project.workflowMode,
+                                targetBaselineXml = targetBaseline,
+                                forceTranslation = snap.forceTranslation,
+                                onTargetBaselinePersist = { xml ->
+                                    projectRepository.persistTargetBaseline(
+                                        projectId = projectId,
+                                        targetXml = xml,
+                                        targetDisplayName = "target.xml",
+                                    )
+                                },
+                                onStateChange = { editorState ->
+                                    projectRepository.syncEditorState(projectId, editorState)
+                                },
+                                onPersistResult = {
+                                    editorControllerStore.currentState(projectId)?.let { editorState ->
+                                        projectRepository.syncEditorState(projectId, editorState)
+                                    }
+                                },
+                            )
+                        }
+                    FileEditorScreen(
+                        controller = controller,
+                        workflowMode = project.workflowMode,
+                        hasTargetBaseline = project.hasTargetBaseline || controller.hasTargetBaseline,
+                        selectedEngine = selectedEngine,
+                        xmlFileAccess = xmlFileAccess,
+                        uiLocale = snap.uiLocale,
+                        onBack = {
+                            openingProject = null
                             mode = DashboardUiMode.Home
-                        }
-                    },
-                )
-                DashboardInsightSection()
-                Spacer(Modifier.height(AppSpacing.lg))
+                        },
+                        onEditorStateChange = { editorState ->
+                            projectRepository.syncEditorState(projectId, editorState)
+                        },
+                        modifier = modifier,
+                    )
+                }
             }
+
+            DashboardUiMode.Home ->
+                BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+                        Column(
+                            modifier =
+                                Modifier
+                                    .widthIn(max = 1280.dp)
+                                    .fillMaxSize()
+                                    .verticalScroll(scroll)
+                                    .padding(AppSpacing.gutter),
+                            verticalArrangement = Arrangement.spacedBy(AppSpacing.xl),
+                        ) {
+                            QuickTranslateSection(
+                                settings = settings,
+                                services = services,
+                                defaultFrom = snap.defaultSourceLang,
+                                defaultTo = snap.defaultTargetLang,
+                            )
+                            FileProjectsSection(
+                                repository = projectRepository,
+                                onViewAllClick = onNavigateToFiles,
+                                onIncrementalUploadClick = {
+                                    xmlFileAccess.launchPickXml { result ->
+                                        result.onSuccess { xml ->
+                                            uploadCounter += 1
+                                            val name =
+                                                if (uploadCounter == 1) {
+                                                    "strings.xml"
+                                                } else {
+                                                    "strings_$uploadCounter.xml"
+                                                }
+                                            onIncrementalUpload(xml, name)
+                                        }
+                                    }
+                                },
+                                onFullUploadClick = {
+                                    xmlFileAccess.launchPickXml { result ->
+                                        result.onSuccess { xml ->
+                                            uploadCounter += 1
+                                            val name =
+                                                if (uploadCounter == 1) {
+                                                    "strings.xml"
+                                                } else {
+                                                    "strings_$uploadCounter.xml"
+                                                }
+                                            onFullUpload(xml, name)
+                                        }
+                                    }
+                                },
+                                onIncrementalDrop = ::onIncrementalDrop,
+                                onFullDrop = ::onFullDrop,
+                                onProjectClick = { openEditor(it) },
+                                onDeleteProject = { project ->
+                                    editorControllerStore.release(project.id)
+                                    projectRepository.deleteProject(project.id)
+                                    val currentMode = mode
+                                    if (currentMode is DashboardUiMode.Editor && currentMode.projectId == project.id) {
+                                        mode = DashboardUiMode.Home
+                                    }
+                                },
+                            )
+                            DashboardInsightSection()
+                            Spacer(Modifier.height(AppSpacing.lg))
+                        }
+                    }
+                }
         }
-    }
-    }
     }
 }
 

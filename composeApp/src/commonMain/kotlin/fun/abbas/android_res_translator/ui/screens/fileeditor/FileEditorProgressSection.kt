@@ -29,6 +29,7 @@ import androidrestranslator.composeapp.generated.resources.Res
 import androidrestranslator.composeapp.generated.resources.file_editor_overall_progress
 import androidrestranslator.composeapp.generated.resources.file_editor_stat_error
 import androidrestranslator.composeapp.generated.resources.file_editor_stat_pending
+import androidrestranslator.composeapp.generated.resources.file_editor_stat_skipped
 import androidrestranslator.composeapp.generated.resources.file_editor_stat_total
 import androidrestranslator.composeapp.generated.resources.file_editor_stat_translated
 import androidrestranslator.composeapp.generated.resources.file_editor_swap_langs
@@ -66,6 +67,13 @@ fun FileEditorProgressCard(
             StatColumn(stringResource(Res.string.file_editor_stat_total), state.totalCount.toString())
             StatColumn(stringResource(Res.string.file_editor_stat_translated), state.completedCount.toString(), colors.primary)
             StatColumn(stringResource(Res.string.file_editor_stat_pending), state.pendingCount.toString(), colors.tertiary)
+            if (state.skippedCount > 0) {
+                StatColumn(
+                    stringResource(Res.string.file_editor_stat_skipped),
+                    state.skippedCount.toString(),
+                    colors.onSurfaceVariant,
+                )
+            }
             if (state.errorCount > 0) {
                 StatColumn(stringResource(Res.string.file_editor_stat_error), state.errorCount.toString(), colors.error)
             }
