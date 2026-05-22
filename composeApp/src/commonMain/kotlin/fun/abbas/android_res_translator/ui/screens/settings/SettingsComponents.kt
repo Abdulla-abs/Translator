@@ -20,11 +20,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Key
-import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -51,7 +49,6 @@ import `fun`.abbas.android_res_translator.ui.settings.AppAppearance
 import `fun`.abbas.android_res_translator.ui.settings.AppSettingsSnapshot
 import `fun`.abbas.android_res_translator.ui.settings.ConsumerMode
 import androidrestranslator.composeapp.generated.resources.Res
-import androidrestranslator.composeapp.generated.resources.common_saved
 import androidrestranslator.composeapp.generated.resources.settings_danger_message
 import androidrestranslator.composeapp.generated.resources.settings_danger_title
 import androidrestranslator.composeapp.generated.resources.settings_force_translate
@@ -65,7 +62,6 @@ import androidrestranslator.composeapp.generated.resources.settings_merge_strate
 import androidrestranslator.composeapp.generated.resources.settings_merge_strategy_hint
 import androidrestranslator.composeapp.generated.resources.settings_page_subtitle
 import androidrestranslator.composeapp.generated.resources.settings_page_title
-import androidrestranslator.composeapp.generated.resources.settings_save_configuration
 import androidrestranslator.composeapp.generated.resources.settings_source_language
 import androidrestranslator.composeapp.generated.resources.settings_target_language
 import androidrestranslator.composeapp.generated.resources.settings_theme_classic
@@ -287,10 +283,6 @@ fun SettingsKeyField(
 fun SettingsStrategiesCard(
     draft: AppSettingsSnapshot,
     onDraft: (AppSettingsSnapshot) -> Unit,
-    /** 主题切换立即落库，使 [AppRoot] 中 AppTheme 能读到新 snapshot（无需再点 Save）。 */
-    onAppearancePersist: (AppSettingsSnapshot) -> Unit = {},
-    /** 界面语言切换立即落库，使 [ProvideAppLocale] 能读到新 snapshot。 */
-    onLocalePersist: (AppSettingsSnapshot) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val colors = MaterialTheme.colorScheme
@@ -321,20 +313,12 @@ fun SettingsStrategiesCard(
 
                 UiLocaleRow(
                     selected = draft.uiLocale,
-                    onSelect = { locale ->
-                        val next = draft.copy(uiLocale = locale)
-                        onDraft(next)
-                        onLocalePersist(next)
-                    },
+                    onSelect = { locale -> onDraft(draft.copy(uiLocale = locale)) },
                 )
 
                 AppearanceThemeRow(
                     selected = draft.appAppearance,
-                    onSelect = { appearance ->
-                        val next = draft.copy(appAppearance = appearance)
-                        onDraft(next)
-                        onAppearancePersist(next)
-                    },
+                    onSelect = { appearance -> onDraft(draft.copy(appAppearance = appearance)) },
                 )
 
                 MergeStrategyRow(
@@ -726,62 +710,3 @@ fun SettingsDangerZone(modifier: Modifier = Modifier) {
     }
 }
 
-/**
- * 设置页底部悬浮保存区，对齐 React `thrid_page` 固定底栏 + Material3 [ExtendedFloatingActionButton]。
- * 仅由 [SettingsScreen] 挂载，离开设置 Tab 即不可见。
- */
-@Composable
-fun SettingsFloatingSaveAction(
-    onSave: () -> Unit,
-    savedHint: String?,
-    modifier: Modifier = Modifier,
-) {
-    val colors = MaterialTheme.colorScheme
-    Box(modifier = modifier.fillMaxWidth()) {
-        Box(
-            modifier =
-                Modifier
-                    .matchParentSize()
-                    .background(
-                        Brush.verticalGradient(
-                            colors =
-                                listOf(
-                                    Color.Transparent,
-                                    colors.background.copy(alpha = 0.85f),
-                                    colors.background,
-                                ),
-                        ),
-                    ),
-        )
-        Column(
-            modifier =
-                Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(horizontal = AppSpacing.gutter, vertical = AppSpacing.md),
-            horizontalAlignment = Alignment.End,
-            verticalArrangement = Arrangement.spacedBy(AppSpacing.sm),
-        ) {
-            savedHint?.let { hint ->
-                Text(
-                    hint,
-                    color = colors.primary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.End,
-                )
-            }
-            ExtendedFloatingActionButton(
-                onClick = onSave,
-                containerColor = colors.primaryContainer,
-                contentColor = colors.onPrimaryContainer,
-                shape = RoundedCornerShape(16.dp),
-            ) {
-                Icon(Icons.Default.Save, contentDescription = null, modifier = Modifier.size(20.dp))
-                Spacer(Modifier.size(AppSpacing.sm))
-                Text(
-                    stringResource(Res.string.settings_save_configuration).uppercase(),
-                    style = AppLabelCapsTextStyle.copy(fontWeight = FontWeight.Black),
-                )
-            }
-        }
-    }
-}

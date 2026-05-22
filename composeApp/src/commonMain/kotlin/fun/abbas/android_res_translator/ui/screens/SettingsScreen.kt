@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
@@ -24,16 +23,11 @@ import androidx.compose.ui.unit.dp
 import `fun`.abbas.android_res_translator.ui.screens.settings.SettingsDangerZone
 import `fun`.abbas.android_res_translator.ui.screens.settings.SettingsPageHeader
 import `fun`.abbas.android_res_translator.ui.screens.settings.SettingsProvidersGrid
-import `fun`.abbas.android_res_translator.ui.screens.settings.SettingsFloatingSaveAction
 import `fun`.abbas.android_res_translator.ui.screens.settings.SettingsStrategiesCard
 import `fun`.abbas.android_res_translator.ui.screens.settings.buildProviderSections
 import `fun`.abbas.android_res_translator.ui.settings.AppSettingsRepository
 import `fun`.abbas.android_res_translator.ui.settings.AppSettingsSnapshot
-import androidrestranslator.composeapp.generated.resources.Res
-import androidrestranslator.composeapp.generated.resources.common_saved
-import org.jetbrains.compose.resources.stringResource
 import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @Composable
@@ -43,22 +37,18 @@ fun SettingsScreen(
 ) {
     val scope = rememberCoroutineScope()
     var draft by remember { mutableStateOf(AppSettingsSnapshot()) }
-    var savedHint by remember { mutableStateOf<String?>(null) }
-    val savedLabel = stringResource(Res.string.common_saved)
 
     LaunchedEffect(repository) {
-        repository.snapshot.collectLatest { draft = it }
+        draft = repository.snapshot.value
+    }
+
+    val persist: (AppSettingsSnapshot) -> Unit = { next ->
+        draft = next
+        scope.launch { repository.replaceAll(next) }
     }
 
     val scroll = rememberScrollState()
-    val providers = buildProviderSections(draft) { draft = it }
-
-    val onSave: () -> Unit = {
-        scope.launch {
-            repository.replaceAll(draft)
-            savedHint = savedLabel
-        }
-    }
+    val providers = buildProviderSections(draft, persist)
 
     Box(
         modifier = modifier.fillMaxSize(),
@@ -77,31 +67,10 @@ fun SettingsScreen(
             SettingsProvidersGrid(sections = providers)
             SettingsStrategiesCard(
                 draft = draft,
-                onDraft = { draft = it },
-                onAppearancePersist = { next ->
-                    scope.launch { repository.replaceAll(next) }
-                },
-                onLocalePersist = { next ->
-                    scope.launch { repository.replaceAll(next) }
-                },
+                onDraft = persist,
             )
             SettingsDangerZone()
-            Spacer(Modifier.height(120.dp))
-        }
-
-        Box(
-            modifier =
-                Modifier
-                    .align(Alignment.BottomCenter)
-                    .widthIn(max = 896.dp)
-                    .fillMaxWidth()
-                    .height(112.dp),
-        ) {
-            SettingsFloatingSaveAction(
-                onSave = onSave,
-                savedHint = savedHint,
-                modifier = Modifier.fillMaxSize(),
-            )
+            Spacer(Modifier.height(AppSpacing.lg))
         }
     }
 }
