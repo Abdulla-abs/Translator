@@ -51,7 +51,7 @@
     <string name="quick_translate_copy">Copy</string>
     <string name="quick_translate_copy_content_description">Copy translation result</string>
     <string name="quick_translate_copied_snackbar">Translation result copied to clipboard</string>
-    <string name="settings_quick_translate_auto">Auto-translate on Quick Translate</string>
+    <string name="settings_quick_translate_auto">Auto-translate</string>
     <string name="settings_quick_translate_auto_hint">After you stop typing for 0.5s, translate automatically. When off, use the Translate button on the home screen.</string>
     <string name="engine_picker_title">Select translation engine</string>
     <string name="language_picker_source_title">Select source language</string>
@@ -105,6 +105,7 @@
     <string name="settings_force_translate">Force Translate</string>
     <string name="settings_force_translate_hint">Translate elements explicitly marked with translatable=\"false\".</string>
     <string name="settings_localization_defaults">Localization Defaults</string>
+    <string name="settings_localization_defaults_hint">Languages from all configured translation engines (merged). Actual translation still uses the engine selected on each screen.</string>
     <string name="settings_source_language">Source Language</string>
     <string name="settings_target_language">Target Language</string>
     <string name="settings_save_configuration">Save Configuration</string>

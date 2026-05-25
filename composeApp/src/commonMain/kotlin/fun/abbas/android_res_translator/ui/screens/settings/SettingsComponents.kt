@@ -32,6 +32,10 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,6 +48,11 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import `fun`.abbas.android_res_translator.ui.components.AppGlassCard
+import `fun`.abbas.android_res_translator.ui.components.AppLanguageChip
+import `fun`.abbas.android_res_translator.ui.screens.main.LanguagePickerDialog
+import `fun`.abbas.android_res_translator.ui.screens.main.formatLanguageLabel
+import `fun`.abbas.android_res_translator.ui.translation.LanguagePickerCatalog
+import `fun`.abbas.android_res_translator.ui.translation.MergedLanguageCatalog
 import `fun`.abbas.android_res_translator.ui.i18n.AppLocale
 import `fun`.abbas.android_res_translator.ui.settings.AppAppearance
 import `fun`.abbas.android_res_translator.ui.settings.AppSettingsSnapshot
@@ -52,7 +61,10 @@ import androidrestranslator.composeapp.generated.resources.settings_danger_messa
 import androidrestranslator.composeapp.generated.resources.settings_danger_title
 import androidrestranslator.composeapp.generated.resources.settings_interface_theme
 import androidrestranslator.composeapp.generated.resources.settings_interface_theme_hint
+import androidrestranslator.composeapp.generated.resources.language_picker_source_title
+import androidrestranslator.composeapp.generated.resources.language_picker_target_title
 import androidrestranslator.composeapp.generated.resources.settings_localization_defaults
+import androidrestranslator.composeapp.generated.resources.settings_localization_defaults_hint
 import androidrestranslator.composeapp.generated.resources.settings_merge_incremental
 import androidrestranslator.composeapp.generated.resources.settings_merge_overwrite
 import androidrestranslator.composeapp.generated.resources.settings_merge_strategy
@@ -336,6 +348,7 @@ fun SettingsStrategiesCard(
                 )
 
                 LocalizationDefaultsRow(
+                    snapshot = draft,
                     sourceLang = draft.defaultSourceLang,
                     targetLang = draft.defaultTargetLang,
                     onSourceChange = { onDraft(draft.copy(defaultSourceLang = it)) },
@@ -506,65 +519,122 @@ private fun StrategyToggleRow(
 
 @Composable
 private fun LocalizationDefaultsRow(
+    snapshot: AppSettingsSnapshot,
     sourceLang: String,
     targetLang: String,
     onSourceChange: (String) -> Unit,
     onTargetChange: (String) -> Unit,
 ) {
+    var editingLang by remember { mutableStateOf<SettingsLangEdit?>(null) }
+    val colors = MaterialTheme.colorScheme
+
     Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
-        Text(stringResource(Res.string.settings_localization_defaults), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+        Text(
+            stringResource(Res.string.settings_localization_defaults),
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Bold,
+        )
+        Text(
+            stringResource(Res.string.settings_localization_defaults_hint),
+            style = MaterialTheme.typography.bodySmall,
+            color = colors.onSurfaceVariant,
+        )
         BoxWithConstraints(Modifier.fillMaxWidth()) {
             if (maxWidth >= 480.dp) {
                 Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
-                    SettingsKeyField(
-                        field =
-                            SettingsFieldModel(
-                                label = stringResource(Res.string.settings_source_language),
-                                placeholder = "en",
-                                isSecret = false,
-                                value = sourceLang,
-                                onValueChange = onSourceChange,
-                            ),
+                    SettingsDefaultLangField(
+                        label = stringResource(Res.string.settings_source_language),
+                        langCode = sourceLang,
+                        placeholderCode = "en",
+                        onClick = { editingLang = SettingsLangEdit.Source },
                         modifier = Modifier.weight(1f),
                     )
-                    SettingsKeyField(
-                        field =
-                            SettingsFieldModel(
-                                label = stringResource(Res.string.settings_target_language),
-                                placeholder = "zh",
-                                isSecret = false,
-                                value = targetLang,
-                                onValueChange = onTargetChange,
-                            ),
+                    SettingsDefaultLangField(
+                        label = stringResource(Res.string.settings_target_language),
+                        langCode = targetLang,
+                        placeholderCode = "zh",
+                        onClick = { editingLang = SettingsLangEdit.Target },
                         modifier = Modifier.weight(1f),
                     )
                 }
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
-                    SettingsKeyField(
-                        field =
-                            SettingsFieldModel(
-                                label = stringResource(Res.string.settings_source_language),
-                                placeholder = "en",
-                                isSecret = false,
-                                value = sourceLang,
-                                onValueChange = onSourceChange,
-                            ),
+                    SettingsDefaultLangField(
+                        label = stringResource(Res.string.settings_source_language),
+                        langCode = sourceLang,
+                        placeholderCode = "en",
+                        onClick = { editingLang = SettingsLangEdit.Source },
                     )
-                    SettingsKeyField(
-                        field =
-                            SettingsFieldModel(
-                                label = stringResource(Res.string.settings_target_language),
-                                placeholder = "zh",
-                                isSecret = false,
-                                value = targetLang,
-                                onValueChange = onTargetChange,
-                            ),
+                    SettingsDefaultLangField(
+                        label = stringResource(Res.string.settings_target_language),
+                        langCode = targetLang,
+                        placeholderCode = "zh",
+                        onClick = { editingLang = SettingsLangEdit.Target },
                     )
                 }
             }
         }
     }
+
+    editingLang?.let { which ->
+        val isSource = which == SettingsLangEdit.Source
+        val options =
+            remember(snapshot, sourceLang, targetLang, which) {
+                if (isSource) {
+                    MergedLanguageCatalog.allSourceOptions(snapshot, targetLang)
+                } else {
+                    MergedLanguageCatalog.allTargetOptions(snapshot, sourceLang)
+                }
+            }
+        LanguagePickerDialog(
+            title =
+                stringResource(
+                    if (isSource) {
+                        Res.string.language_picker_source_title
+                    } else {
+                        Res.string.language_picker_target_title
+                    },
+                ),
+            engine = null,
+            options = options,
+            selectedCode = if (isSource) sourceLang else targetLang,
+            onDismiss = { editingLang = null },
+            onSelect = { code ->
+                when (which) {
+                    SettingsLangEdit.Source -> {
+                        onSourceChange(code)
+                        onTargetChange(
+                            LanguagePickerCatalog.adjustTargetWhenSourceEqualsTarget(code, targetLang),
+                        )
+                    }
+                    SettingsLangEdit.Target -> onTargetChange(code)
+                }
+            },
+        )
+    }
+}
+
+@Composable
+private fun SettingsDefaultLangField(
+    label: String,
+    langCode: String,
+    placeholderCode: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)) {
+        Text(label, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+        AppLanguageChip(
+            label = formatLanguageLabel(langCode.ifBlank { placeholderCode }),
+            onClick = onClick,
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
+}
+
+private enum class SettingsLangEdit {
+    Source,
+    Target,
 }
 
 @Composable

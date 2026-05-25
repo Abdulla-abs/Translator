@@ -51,7 +51,7 @@
     <string name="quick_translate_copy">复制</string>
     <string name="quick_translate_copy_content_description">复制翻译结果</string>
     <string name="quick_translate_copied_snackbar">翻译结果已复制到剪贴板</string>
-    <string name="settings_quick_translate_auto">快速翻译自动翻译</string>
+    <string name="settings_quick_translate_auto">自动翻译</string>
     <string name="settings_quick_translate_auto_hint">停止输入 0.5 秒后自动翻译。关闭后需在主页使用翻译按钮手动翻译。</string>
     <string name="engine_picker_title">选择翻译引擎</string>
     <string name="language_picker_source_title">选择源语言</string>
@@ -105,6 +105,7 @@
     <string name="settings_force_translate">强制翻译</string>
     <string name="settings_force_translate_hint">翻译显式标记为 translatable=\"false\" 的元素。</string>
     <string name="settings_localization_defaults">本地化默认</string>
+    <string name="settings_localization_defaults_hint">选项来自所有已配置翻译引擎的支持语言（合并去重）。实际翻译时仍按各页面所选引擎校验语言对。</string>
     <string name="settings_source_language">源语言</string>
     <string name="settings_target_language">目标语言</string>
     <string name="settings_save_configuration">保存配置</string>
