@@ -72,6 +72,9 @@
     <string name="file_editor_export_confirm_title">导出确认</string>
     <string name="file_editor_export_confirm_message">文件中有 %1$d 条翻译失败。继续导出时，失败条目将保留源语言文本。是否继续导出？</string>
     <string name="file_editor_export_confirm_continue">继续导出</string>
+    <string name="file_editor_project_settings">项目设置</string>
+    <string name="file_editor_project_settings_subtitle">以下选项仅作用于当前项目，并会随项目单独保存。</string>
+    <string name="file_editor_open_settings">打开项目设置</string>
     <string name="file_editor_retranslate_title">重新翻译</string>
     <string name="file_editor_retranslate_message">文件已全部翻译完成，是否重新翻译？确认后当前译文将被清空并从头开始。</string>
     <string name="file_editor_retranslate_confirm">重新翻译</string>

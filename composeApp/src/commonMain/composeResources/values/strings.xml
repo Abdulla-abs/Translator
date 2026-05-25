@@ -72,6 +72,9 @@
     <string name="file_editor_export_confirm_title">Export confirmation</string>
     <string name="file_editor_export_confirm_message">%1$d entries failed to translate. Failed entries will keep source text on export. Continue?</string>
     <string name="file_editor_export_confirm_continue">Continue export</string>
+    <string name="file_editor_project_settings">Project settings</string>
+    <string name="file_editor_project_settings_subtitle">Options below apply only to this project and are saved with it.</string>
+    <string name="file_editor_open_settings">Open project settings</string>
     <string name="file_editor_retranslate_title">Retranslate</string>
     <string name="file_editor_retranslate_message">Translation is complete. Retranslate from scratch? Current translations will be cleared.</string>
     <string name="file_editor_retranslate_confirm">Retranslate</string>

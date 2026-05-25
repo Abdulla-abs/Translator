@@ -50,8 +50,6 @@ import `fun`.abbas.android_res_translator.ui.settings.AppSettingsSnapshot
 import androidrestranslator.composeapp.generated.resources.Res
 import androidrestranslator.composeapp.generated.resources.settings_danger_message
 import androidrestranslator.composeapp.generated.resources.settings_danger_title
-import androidrestranslator.composeapp.generated.resources.settings_force_translate
-import androidrestranslator.composeapp.generated.resources.settings_force_translate_hint
 import androidrestranslator.composeapp.generated.resources.settings_interface_theme
 import androidrestranslator.composeapp.generated.resources.settings_interface_theme_hint
 import androidrestranslator.composeapp.generated.resources.settings_localization_defaults
@@ -327,13 +325,6 @@ fun SettingsStrategiesCard(
                     description = stringResource(Res.string.settings_quick_translate_auto_hint),
                     checked = draft.quickTranslateAuto,
                     onCheckedChange = { onDraft(draft.copy(quickTranslateAuto = it)) },
-                )
-
-                StrategyToggleRow(
-                    title = stringResource(Res.string.settings_force_translate),
-                    description = stringResource(Res.string.settings_force_translate_hint),
-                    checked = draft.forceTranslation,
-                    onCheckedChange = { onDraft(draft.copy(forceTranslation = it)) },
                 )
 
                 Box(

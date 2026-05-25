@@ -18,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,6 +29,7 @@ import `fun`.abbas.android_res_translator.ui.XmlFileAccess
 import `fun`.abbas.android_res_translator.ui.files.DroppedXmlFile
 import `fun`.abbas.android_res_translator.ui.files.WithFilePermissions
 import `fun`.abbas.android_res_translator.ui.screens.fileeditor.FileEditorControllerStore
+import `fun`.abbas.android_res_translator.ui.screens.fileeditor.FileEditorProjectSettingsScreen
 import `fun`.abbas.android_res_translator.ui.screens.fileeditor.FileEditorScreen
 import `fun`.abbas.android_res_translator.ui.screens.main.DashboardInsightSection
 import `fun`.abbas.android_res_translator.ui.screens.main.FileProjectsSection
@@ -136,7 +138,7 @@ fun MainDashboardScreen(
                                 resultPath = project.resultPath,
                                 workflowMode = project.workflowMode,
                                 targetBaselineXml = targetBaseline,
-                                forceTranslation = snap.forceTranslation,
+                                initialForceTranslation = initialSession?.forceTranslation ?: false,
                                 onTargetBaselinePersist = { xml ->
                                     projectRepository.persistTargetBaseline(
                                         projectId = projectId,
@@ -154,22 +156,36 @@ fun MainDashboardScreen(
                                 },
                             )
                         }
-                    FileEditorScreen(
-                        controller = controller,
-                        workflowMode = project.workflowMode,
-                        hasTargetBaseline = project.hasTargetBaseline || controller.hasTargetBaseline,
-                        selectedEngine = selectedEngine,
-                        xmlFileAccess = xmlFileAccess,
-                        uiLocale = snap.uiLocale,
-                        onBack = {
-                            openingProject = null
-                            mode = DashboardUiMode.Home
-                        },
-                        onEditorStateChange = { editorState ->
-                            projectRepository.syncEditorState(projectId, editorState)
-                        },
-                        modifier = modifier,
-                    )
+                    var showProjectSettings by rememberSaveable(projectId) { mutableStateOf(false) }
+                    val editorState by controller.state.collectAsState()
+                    if (showProjectSettings) {
+                        FileEditorProjectSettingsScreen(
+                            projectDisplayName = project.displayName,
+                            forceTranslation = editorState.forceTranslation,
+                            onForceTranslationChange = controller::setForceTranslation,
+                            enabled = !editorState.isRunning,
+                            onBack = { showProjectSettings = false },
+                            modifier = modifier,
+                        )
+                    } else {
+                        FileEditorScreen(
+                            controller = controller,
+                            workflowMode = project.workflowMode,
+                            hasTargetBaseline = project.hasTargetBaseline || controller.hasTargetBaseline,
+                            selectedEngine = selectedEngine,
+                            xmlFileAccess = xmlFileAccess,
+                            uiLocale = snap.uiLocale,
+                            onBack = {
+                                openingProject = null
+                                mode = DashboardUiMode.Home
+                            },
+                            onEditorStateChange = { state ->
+                                projectRepository.syncEditorState(projectId, state)
+                            },
+                            onOpenProjectSettings = { showProjectSettings = true },
+                            modifier = modifier,
+                        )
+                    }
                 }
             }
 

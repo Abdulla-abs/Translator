@@ -23,6 +23,7 @@ private data class PersistedEditorSession(
     val isPaused: Boolean = false,
     val sourceLang: String? = null,
     val targetLang: String? = null,
+    val forceTranslation: Boolean = false,
 )
 
 @Serializable
@@ -61,6 +62,7 @@ fun TranslationProjectFileStore.writeSessionFromEditorState(
             isPaused = normalized.isPaused,
             sourceLang = normalized.sourceLang,
             targetLang = normalized.targetLang,
+            forceTranslation = normalized.forceTranslation,
         )
     writeTextFileAtomic(sessionPath(projectId), sessionJson.encodeToString(payload))
 }
@@ -111,6 +113,7 @@ private fun loadPersistedSession(projectId: String): FileEditorSessionSnapshot? 
             entries = parsed.entries.map { it.toUi() },
             keyFilter = parsed.keyFilter,
             isPaused = parsed.isPaused,
+            forceTranslation = parsed.forceTranslation,
         )
     }.getOrNull()
 }

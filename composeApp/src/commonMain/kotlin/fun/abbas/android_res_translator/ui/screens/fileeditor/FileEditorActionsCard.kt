@@ -27,6 +27,7 @@ import androidrestranslator.composeapp.generated.resources.Res
 import androidrestranslator.composeapp.generated.resources.file_editor_export_xml
 import androidrestranslator.composeapp.generated.resources.file_editor_pause_translation
 import androidrestranslator.composeapp.generated.resources.file_editor_resume_translation
+import androidrestranslator.composeapp.generated.resources.file_editor_retranslate_confirm
 import androidrestranslator.composeapp.generated.resources.file_editor_start_translation
 import org.jetbrains.compose.resources.stringResource
 
@@ -54,6 +55,7 @@ fun FileEditorActionsCard(
                 when {
                     state.isPaused -> stringResource(Res.string.file_editor_resume_translation)
                     state.isRunning -> stringResource(Res.string.file_editor_pause_translation)
+                    state.isExportReady -> stringResource(Res.string.file_editor_retranslate_confirm)
                     else -> stringResource(Res.string.file_editor_start_translation)
                 }
             val pauseIcon =

@@ -27,7 +27,7 @@ class FileEditorControllerStore(
         resultPath: String? = null,
         workflowMode: TranslationWorkflowMode = TranslationWorkflowMode.FULL,
         targetBaselineXml: String? = null,
-        forceTranslation: Boolean = false,
+        initialForceTranslation: Boolean = false,
         onTargetBaselinePersist: ((String) -> Unit)? = null,
         onStateChange: ((FileEditorState) -> Unit)? = null,
         onPersistResult: (() -> Unit)? = null,
@@ -52,7 +52,7 @@ class FileEditorControllerStore(
                 resultPath = resultPath,
                 workflowMode = workflowMode,
                 targetBaselineXml = targetBaselineXml,
-                forceTranslation = forceTranslation,
+                initialForceTranslation = initialForceTranslation,
                 onTargetBaselinePersist = onTargetBaselinePersist,
                 onPersistResult = onPersistResult,
             )

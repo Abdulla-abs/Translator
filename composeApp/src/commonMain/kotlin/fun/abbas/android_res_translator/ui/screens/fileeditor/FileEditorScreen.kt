@@ -17,6 +17,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -76,6 +77,7 @@ import androidrestranslator.composeapp.generated.resources.file_editor_exported
 import androidrestranslator.composeapp.generated.resources.file_editor_filter_placeholder
 import androidrestranslator.composeapp.generated.resources.file_editor_header_langs
 import androidrestranslator.composeapp.generated.resources.file_editor_no_matching_entries
+import androidrestranslator.composeapp.generated.resources.file_editor_open_settings
 import androidrestranslator.composeapp.generated.resources.file_editor_xml_entries
 import androidrestranslator.composeapp.generated.resources.file_editor_retranslate_confirm
 import androidrestranslator.composeapp.generated.resources.file_editor_retranslate_message
@@ -95,6 +97,7 @@ fun FileEditorScreen(
     workflowMode: TranslationWorkflowMode = TranslationWorkflowMode.FULL,
     hasTargetBaseline: Boolean = true,
     onEditorStateChange: ((FileEditorState) -> Unit)? = null,
+    onOpenProjectSettings: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val scope = rememberCoroutineScope()
@@ -161,6 +164,7 @@ fun FileEditorScreen(
         state.errorCount,
         state.sourceLang,
         state.targetLang,
+        state.forceTranslation,
     ) {
         onEditorStateChange?.invoke(state)
     }
@@ -186,6 +190,7 @@ fun FileEditorScreen(
                     sourceLang = state.sourceLang,
                     targetLang = state.targetLang,
                     onBack = onBack,
+                    onOpenSettings = onOpenProjectSettings,
                 )
                 Column(
                     modifier =
@@ -225,7 +230,10 @@ fun FileEditorScreen(
                                 )
                                 FileEditorActionsCard(
                                     state = state,
-                                    translationEnabled = controller.canStartTranslation() || state.isRunning,
+                                    translationEnabled =
+                                        controller.canStartTranslation() ||
+                                            state.isRunning ||
+                                            state.isExportReady,
                                     exportEnabled =
                                         workflowMode == TranslationWorkflowMode.FULL || hasTargetBaseline,
                                     onTranslationAction = onTranslationAction,
@@ -245,7 +253,10 @@ fun FileEditorScreen(
                                 )
                                 FileEditorActionsCard(
                                     state = state,
-                                    translationEnabled = controller.canStartTranslation() || state.isRunning,
+                                    translationEnabled =
+                                        controller.canStartTranslation() ||
+                                            state.isRunning ||
+                                            state.isExportReady,
                                     exportEnabled =
                                         workflowMode == TranslationWorkflowMode.FULL || hasTargetBaseline,
                                     onTranslationAction = onTranslationAction,
@@ -372,6 +383,7 @@ private fun FileEditorHeader(
     sourceLang: String,
     targetLang: String,
     onBack: () -> Unit,
+    onOpenSettings: (() -> Unit)? = null,
 ) {
     val colors = MaterialTheme.colorScheme
     Surface(color = colors.background, tonalElevation = 0.dp) {
@@ -392,6 +404,15 @@ private fun FileEditorHeader(
                     color = colors.primary,
                 )
                 Text(filePath, style = AppCodeSmallTextStyle, color = colors.onSurfaceVariant)
+            }
+            if (onOpenSettings != null) {
+                IconButton(onClick = onOpenSettings) {
+                    Icon(
+                        Icons.Default.Settings,
+                        contentDescription = stringResource(Res.string.file_editor_open_settings),
+                        tint = colors.primary,
+                    )
+                }
             }
         }
         HorizontalDivider(color = colors.outlineVariant)

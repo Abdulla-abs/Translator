@@ -35,9 +35,10 @@ class FileEditorController(
     private val onPersistResult: (() -> Unit)? = null,
     private val workflowMode: TranslationWorkflowMode = TranslationWorkflowMode.FULL,
     private var targetBaselineXml: String? = null,
-    private val forceTranslation: Boolean = false,
+    initialForceTranslation: Boolean = false,
     private val onTargetBaselinePersist: ((String) -> Unit)? = null,
 ) {
+    private var forceTranslation: Boolean = initialSession?.forceTranslation ?: initialForceTranslation
     private var parsedFile: StringResourceFile = StringResourceFile()
     private var translationJob: Job? = null
     private var flushResultJob: Job? = null
@@ -63,6 +64,7 @@ class FileEditorController(
                 filePath = filePath,
                 sourceLang = sourceLang,
                 targetLang = targetLang,
+                forceTranslation = forceTranslation,
             ),
         )
     val state: StateFlow<FileEditorState> = _state.asStateFlow()
@@ -86,6 +88,7 @@ class FileEditorController(
     }
 
     fun restoreSession(snapshot: FileEditorSessionSnapshot) {
+        forceTranslation = snapshot.forceTranslation
         parsedFile =
             runCatching { StringsXmlCodec.parse(sourceXml) }
                 .getOrElse { StringResourceFile() }
@@ -103,6 +106,47 @@ class FileEditorController(
                 isPaused = snapshot.isPaused,
                 isRunning = false,
                 exportMessage = null,
+                forceTranslation = snapshot.forceTranslation,
+            )
+        }
+    }
+
+    fun setForceTranslation(enabled: Boolean) {
+        if (forceTranslation == enabled) return
+        if (_state.value.isRunning) return
+        forceTranslation = enabled
+        _state.update { s ->
+            s.copy(
+                forceTranslation = enabled,
+                entries =
+                    s.entries.map { entry ->
+                        applyForceTranslationToEntry(entry, enabled)
+                    },
+            )
+        }
+        scheduleResultFlush()
+    }
+
+    private fun applyForceTranslationToEntry(
+        entry: XmlEntryUi,
+        enabled: Boolean,
+    ): XmlEntryUi {
+        if (entry.translatable) return entry
+        return if (enabled) {
+            when (entry.status) {
+                is EntryStatus.Completed,
+                is EntryStatus.Error,
+                -> entry
+                else ->
+                    entry.copy(
+                        status = EntryStatus.Pending,
+                        targetText = null,
+                    )
+            }
+        } else {
+            entry.copy(
+                status = EntryStatus.Skipped,
+                targetText = entry.sourceText,
             )
         }
     }

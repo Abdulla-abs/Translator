@@ -55,6 +55,34 @@ class FileEditorControllerTest {
     }
 
     @Test
+    fun setForceTranslation_enablesPendingForNonTranslatableStrings() = runTest {
+        val xmlWithFixed =
+            """
+            <?xml version="1.0" encoding="utf-8"?>
+            <resources>
+                <string name="app_name" translatable="false">Hello</string>
+            </resources>
+            """.trimIndent()
+        val controller =
+            FileEditorController(
+                services = TranslationServices(FakeSecretsProvider(emptyMap())),
+                scope = this,
+                fileName = "strings.xml",
+                filePath = "/res/",
+                sourceLang = "en",
+                targetLang = "zh",
+                sourceXml = xmlWithFixed,
+                workflowMode = TranslationWorkflowMode.FULL,
+            )
+        val skipped = controller.state.value.entries.single { it.key == "app_name" }
+        assertEquals(EntryStatus.Skipped, skipped.status)
+        controller.setForceTranslation(true)
+        val pending = controller.state.value.entries.single { it.key == "app_name" }
+        assertEquals(EntryStatus.Pending, pending.status)
+        assertTrue(controller.state.value.forceTranslation)
+    }
+
+    @Test
     fun incremental_marksSkipped() = runTest {
         val targetXml =
             """
@@ -135,5 +163,37 @@ class FileEditorControllerTest {
             )
         assertEquals(1, controller.state.value.completedCount)
         assertEquals(false, controller.state.value.isRunning)
+    }
+
+    @Test
+    fun completedProject_canRetranslateViaRetranslateAllFromScratch() = runTest {
+        val controller =
+            FileEditorController(
+                services = TranslationServices(FakeSecretsProvider(emptyMap())),
+                scope = this,
+                fileName = "strings.xml",
+                filePath = "/res/",
+                sourceLang = "en",
+                targetLang = "zh",
+                sourceXml =
+                    """
+                    <resources>
+                        <string name="app_name">Hello</string>
+                    </resources>
+                    """.trimIndent(),
+                initialSession =
+                    FileEditorSessionSnapshot(
+                        entries =
+                            listOf(
+                                XmlEntryUi("app_name", "Hello", "你好", EntryStatus.Completed),
+                            ),
+                    ),
+            )
+        val state = controller.state.value
+        assertTrue(state.isExportReady)
+        assertFalse(controller.canStartTranslation())
+        controller.retranslateAllFromScratch()
+        assertTrue(controller.state.value.pendingCount > 0)
+        assertFalse(controller.state.value.isExportReady)
     }
 }

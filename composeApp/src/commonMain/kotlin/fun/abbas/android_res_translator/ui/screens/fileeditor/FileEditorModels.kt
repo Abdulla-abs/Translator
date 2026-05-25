@@ -28,6 +28,7 @@ data class FileEditorSessionSnapshot(
     val entries: List<XmlEntryUi>,
     val keyFilter: String = "",
     val isPaused: Boolean = false,
+    val forceTranslation: Boolean = false,
 )
 
 fun FileEditorState.toSessionSnapshot(): FileEditorSessionSnapshot =
@@ -35,6 +36,7 @@ fun FileEditorState.toSessionSnapshot(): FileEditorSessionSnapshot =
         entries = entries,
         keyFilter = keyFilter,
         isPaused = isPaused,
+        forceTranslation = forceTranslation,
     )
 
 data class FileEditorState(
@@ -47,6 +49,7 @@ data class FileEditorState(
     val isPaused: Boolean = false,
     val isRunning: Boolean = false,
     val exportMessage: String? = null,
+    val forceTranslation: Boolean = false,
 ) {
     val translatableEntries: List<XmlEntryUi>
         get() = entries.filter { it.translatable }
