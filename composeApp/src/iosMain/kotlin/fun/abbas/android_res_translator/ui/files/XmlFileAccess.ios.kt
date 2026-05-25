@@ -18,6 +18,14 @@ actual fun rememberXmlFileAccess(): XmlFileAccess =
             ) {
                 onDone(false)
             }
+
+            override fun launchSaveSpreadsheet(
+                bytes: ByteArray,
+                suggestedName: String,
+                onDone: (Boolean) -> Unit,
+            ) {
+                onDone(false)
+            }
         }
     }
 

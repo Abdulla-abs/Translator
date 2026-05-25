@@ -114,6 +114,8 @@ private fun loadPersistedSession(projectId: String): FileEditorSessionSnapshot? 
             keyFilter = parsed.keyFilter,
             isPaused = parsed.isPaused,
             forceTranslation = parsed.forceTranslation,
+            sourceLang = parsed.sourceLang?.trim()?.takeIf { it.isNotEmpty() },
+            targetLang = parsed.targetLang?.trim()?.takeIf { it.isNotEmpty() },
         )
     }.getOrNull()
 }

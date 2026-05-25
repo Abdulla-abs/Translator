@@ -69,6 +69,7 @@
     <string name="file_editor_pause_translation">Pause Translation</string>
     <string name="file_editor_resume_translation">Resume Translation</string>
     <string name="file_editor_export_xml">Export %1$s XML</string>
+    <string name="file_editor_export_excel">Export Excel (.xlsx)</string>
     <string name="file_editor_export_confirm_title">Export confirmation</string>
     <string name="file_editor_export_confirm_message">%1$d entries failed to translate. Failed entries will keep source text on export. Continue?</string>
     <string name="file_editor_export_confirm_continue">Continue export</string>

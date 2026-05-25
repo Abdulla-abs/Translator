@@ -108,6 +108,41 @@ class FileEditorControllerTest {
     }
 
     @Test
+    fun exportXlsxBytes_containsTranslatedRow() = runTest {
+        val controller =
+            FileEditorController(
+                services = TranslationServices(FakeSecretsProvider(emptyMap())),
+                scope = this,
+                fileName = "strings.xml",
+                filePath = "/res/",
+                sourceLang = "en",
+                targetLang = "zh",
+                sourceXml =
+                    """
+                    <resources>
+                        <string name="app_name">Hello</string>
+                    </resources>
+                    """.trimIndent(),
+            )
+        controller.restoreSession(
+            FileEditorSessionSnapshot(
+                entries =
+                    listOf(
+                        XmlEntryUi(
+                            key = "app_name",
+                            sourceText = "Hello",
+                            targetText = "你好",
+                            status = EntryStatus.Completed,
+                        ),
+                    ),
+            ),
+        )
+        val bytes = controller.exportXlsxBytes()
+        assertTrue(bytes.size > 50)
+        assertEquals(0x50, bytes[0].toInt())
+    }
+
+    @Test
     fun exportXml_usesTranslatedTarget() = runTest {
         val controller =
             FileEditorController(

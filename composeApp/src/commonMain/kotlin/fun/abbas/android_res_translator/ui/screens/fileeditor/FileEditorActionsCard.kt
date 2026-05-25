@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.TableChart
 import androidx.compose.material.icons.filled.PauseCircle
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material3.Button
@@ -24,6 +25,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Surface
 import androidx.compose.ui.unit.dp
 import androidrestranslator.composeapp.generated.resources.Res
+import androidrestranslator.composeapp.generated.resources.file_editor_export_excel
 import androidrestranslator.composeapp.generated.resources.file_editor_export_xml
 import androidrestranslator.composeapp.generated.resources.file_editor_pause_translation
 import androidrestranslator.composeapp.generated.resources.file_editor_resume_translation
@@ -38,6 +40,7 @@ fun FileEditorActionsCard(
     exportEnabled: Boolean = true,
     onTranslationAction: () -> Unit,
     onExportClick: () -> Unit,
+    onExportXlsxClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = MaterialTheme.colorScheme
@@ -87,39 +90,58 @@ fun FileEditorActionsCard(
                 Icon(pauseIcon, contentDescription = null)
                 Text(pauseLabel, modifier = Modifier.padding(start = AppSpacing.sm))
             }
-            if (state.isExportReady) {
-                Button(
-                    onClick = onExportClick,
-                    enabled = exportEnabled,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = AppControlShape,
-                    colors =
-                        ButtonDefaults.buttonColors(
-                            containerColor = colors.secondaryContainer,
-                            contentColor = colors.onSecondaryContainer,
-                        ),
-                ) {
-                    Icon(Icons.Default.Download, contentDescription = null)
-                    Text(
-                        stringResource(Res.string.file_editor_export_xml, state.targetLang.uppercase()),
-                        modifier = Modifier.padding(start = AppSpacing.sm),
-                    )
-                }
-            } else {
-                OutlinedButton(
-                    onClick = onExportClick,
-                    enabled = exportEnabled,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = AppControlShape,
-                    border = BorderStroke(1.dp, colors.outlineVariant),
-                ) {
-                    Icon(Icons.Default.Download, contentDescription = null)
-                    Text(
-                        stringResource(Res.string.file_editor_export_xml, state.targetLang.uppercase()),
-                        modifier = Modifier.padding(start = AppSpacing.sm),
-                    )
-                }
-            }
+            ExportActionButton(
+                label = stringResource(Res.string.file_editor_export_xml, state.targetLang.uppercase()),
+                icon = Icons.Default.Download,
+                filled = state.isExportReady,
+                enabled = exportEnabled,
+                onClick = onExportClick,
+            )
+            ExportActionButton(
+                label = stringResource(Res.string.file_editor_export_excel),
+                icon = Icons.Default.TableChart,
+                filled = state.isExportReady,
+                enabled = exportEnabled && state.isExportReady,
+                onClick = onExportXlsxClick,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ExportActionButton(
+    label: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    filled: Boolean,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    val colors = MaterialTheme.colorScheme
+    if (filled) {
+        Button(
+            onClick = onClick,
+            enabled = enabled,
+            modifier = Modifier.fillMaxWidth(),
+            shape = AppControlShape,
+            colors =
+                ButtonDefaults.buttonColors(
+                    containerColor = colors.secondaryContainer,
+                    contentColor = colors.onSecondaryContainer,
+                ),
+        ) {
+            Icon(icon, contentDescription = null)
+            Text(label, modifier = Modifier.padding(start = AppSpacing.sm))
+        }
+    } else {
+        OutlinedButton(
+            onClick = onClick,
+            enabled = enabled,
+            modifier = Modifier.fillMaxWidth(),
+            shape = AppControlShape,
+            border = BorderStroke(1.dp, colors.outlineVariant),
+        ) {
+            Icon(icon, contentDescription = null)
+            Text(label, modifier = Modifier.padding(start = AppSpacing.sm))
         }
     }
 }

@@ -11,6 +11,12 @@ interface XmlFileAccess {
         suggestedName: String,
         onDone: (Boolean) -> Unit,
     )
+
+    fun launchSaveSpreadsheet(
+        bytes: ByteArray,
+        suggestedName: String,
+        onDone: (Boolean) -> Unit,
+    )
 }
 
 @Composable

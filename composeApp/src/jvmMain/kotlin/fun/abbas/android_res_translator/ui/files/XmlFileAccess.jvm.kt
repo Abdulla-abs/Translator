@@ -77,4 +77,41 @@ private class JvmXmlFileAccess : XmlFileAccess {
             SwingUtilities.invokeLater { onDone(ok) }
         }.start()
     }
+
+    override fun launchSaveSpreadsheet(
+        bytes: ByteArray,
+        suggestedName: String,
+        onDone: (Boolean) -> Unit,
+    ) {
+        Thread {
+            val ok =
+                try {
+                    val dialog = FileDialog(null as Frame?, "保存 Excel", FileDialog.SAVE)
+                    dialog.file =
+                        if (suggestedName.endsWith(".xlsx", ignoreCase = true)) {
+                            suggestedName
+                        } else {
+                            "$suggestedName.xlsx"
+                        }
+                    dialog.isVisible = true
+                    val dir = dialog.directory
+                    val fileName = dialog.file
+                    if (dir == null || fileName == null) {
+                        false
+                    } else {
+                        val name =
+                            if (fileName.endsWith(".xlsx", ignoreCase = true)) {
+                                fileName
+                            } else {
+                                "$fileName.xlsx"
+                            }
+                        File(dir, name).writeBytes(bytes)
+                        true
+                    }
+                } catch (_: Exception) {
+                    false
+                }
+            SwingUtilities.invokeLater { onDone(ok) }
+        }.start()
+    }
 }

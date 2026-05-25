@@ -18,6 +18,23 @@ class RecentXmlProjectRepositoryTest {
     }
 
     @Test
+    fun syncEditorState_updatesLanguagePairOnProject() {
+        val repo = InMemoryRecentXmlProjectRepository()
+        repo.addOrUpdate(sampleProject("a", "strings.xml"))
+        repo.syncEditorState(
+            "a",
+            FileEditorState(
+                sourceLang = "ja",
+                targetLang = "fr",
+                entries = listOf(XmlEntryUi("k1", "Hi", null, EntryStatus.Pending)),
+            ),
+        )
+        val updated = repo.projects.value.single()
+        assertEquals("ja", updated.sourceLang)
+        assertEquals("fr", updated.targetLang)
+    }
+
+    @Test
     fun syncEditorState_updatesProgressAndSession() {
         val repo = InMemoryRecentXmlProjectRepository()
         repo.addOrUpdate(sampleProject("a", "strings.xml", progress = 0f))

@@ -69,6 +69,7 @@
     <string name="file_editor_pause_translation">暂停翻译</string>
     <string name="file_editor_resume_translation">继续翻译</string>
     <string name="file_editor_export_xml">导出 %1$s XML</string>
+    <string name="file_editor_export_excel">导出 Excel (.xlsx)</string>
     <string name="file_editor_export_confirm_title">导出确认</string>
     <string name="file_editor_export_confirm_message">文件中有 %1$d 条翻译失败。继续导出时，失败条目将保留源语言文本。是否继续导出？</string>
     <string name="file_editor_export_confirm_continue">继续导出</string>

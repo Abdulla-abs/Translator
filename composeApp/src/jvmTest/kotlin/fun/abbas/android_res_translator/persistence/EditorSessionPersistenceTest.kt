@@ -60,6 +60,31 @@ class EditorSessionPersistenceTest {
         assertFalse(reloaded?.forceTranslation == true)
     }
 
+    @Test
+    fun writeSession_persistsSourceAndTargetLangPerProject() {
+        val project =
+            TranslationProjectFileStore.createProjectFromUpload(
+                sourceXml = SAMPLE_XML,
+                displayName = "strings.xml",
+                sourceLang = "en",
+                targetLang = "zh",
+            )
+        TranslationProjectFileStore.writeSessionFromEditorState(
+            project.id,
+            FileEditorState(
+                entries =
+                    listOf(
+                        XmlEntryUi("app_name", "Hello", null, EntryStatus.Pending),
+                    ),
+                sourceLang = "ja",
+                targetLang = "ko",
+            ),
+        )
+        val loaded = TranslationProjectFileStore.loadSessionSnapshot(project)
+        kotlin.test.assertEquals("ja", loaded?.sourceLang)
+        kotlin.test.assertEquals("ko", loaded?.targetLang)
+    }
+
     companion object {
         private val SAMPLE_XML =
             """

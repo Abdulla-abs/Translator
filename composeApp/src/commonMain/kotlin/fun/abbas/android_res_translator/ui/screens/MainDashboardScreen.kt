@@ -125,14 +125,25 @@ fun MainDashboardScreen(
                         }
                     val initialSession =
                         remember(projectId) { TranslationProjectFileStore.loadSessionSnapshot(project) }
+                    val resolvedSourceLang =
+                        initialSession?.sourceLang?.takeIf { it.isNotBlank() } ?: project.sourceLang
+                    val resolvedTargetLang =
+                        initialSession?.targetLang?.takeIf { it.isNotBlank() } ?: project.targetLang
                     val controller =
-                        remember(projectId, sourceXml, targetBaseline, project.workflowMode) {
+                        remember(
+                            projectId,
+                            sourceXml,
+                            targetBaseline,
+                            project.workflowMode,
+                            resolvedSourceLang,
+                            resolvedTargetLang,
+                        ) {
                             editorControllerStore.getOrCreate(
                                 key = projectId,
                                 fileName = project.displayName,
                                 filePath = "recent/$projectId",
-                                sourceLang = project.sourceLang,
-                                targetLang = project.targetLang,
+                                sourceLang = resolvedSourceLang,
+                                targetLang = resolvedTargetLang,
                                 sourceXml = sourceXml,
                                 initialSession = initialSession,
                                 resultPath = project.resultPath,

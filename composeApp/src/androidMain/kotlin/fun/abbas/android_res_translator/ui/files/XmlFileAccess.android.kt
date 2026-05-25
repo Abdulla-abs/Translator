@@ -21,6 +21,8 @@ actual fun rememberXmlFileAccess(): XmlFileAccess {
     var pickCb by remember { mutableStateOf<((Result<String>) -> Unit)?>(null) }
     var savePayload by remember { mutableStateOf<Pair<String, String>?>(null) }
     var saveCb by remember { mutableStateOf<((Boolean) -> Unit)?>(null) }
+    var saveXlsxPayload by remember { mutableStateOf<Pair<ByteArray, String>?>(null) }
+    var saveXlsxCb by remember { mutableStateOf<((Boolean) -> Unit)?>(null) }
 
     val pickLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
@@ -43,6 +45,35 @@ actual fun rememberXmlFileAccess(): XmlFileAccess {
                         Result.failure(e)
                     }
                 withContext(Dispatchers.Main) { cb(result) }
+            }
+        }
+
+    val saveXlsxLauncher =
+        rememberLauncherForActivityResult(
+            ActivityResultContracts.CreateDocument(
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            ),
+        ) { uri: Uri? ->
+            val cb = saveXlsxCb
+            val payload = saveXlsxPayload
+            saveXlsxCb = null
+            saveXlsxPayload = null
+            if (cb == null || payload == null) return@rememberLauncherForActivityResult
+            if (uri == null) {
+                cb(false)
+                return@rememberLauncherForActivityResult
+            }
+            scope.launch(Dispatchers.IO) {
+                val ok =
+                    try {
+                        context.contentResolver.openOutputStream(uri)?.use { out ->
+                            out.write(payload.first)
+                        }
+                        true
+                    } catch (_: Exception) {
+                        false
+                    }
+                withContext(Dispatchers.Main) { cb(ok) }
             }
         }
 
@@ -86,6 +117,22 @@ actual fun rememberXmlFileAccess(): XmlFileAccess {
                 savePayload = content to suggestedName
                 saveCb = onDone
                 saveLauncher.launch(suggestedName)
+            }
+
+            override fun launchSaveSpreadsheet(
+                bytes: ByteArray,
+                suggestedName: String,
+                onDone: (Boolean) -> Unit,
+            ) {
+                val name =
+                    if (suggestedName.endsWith(".xlsx", ignoreCase = true)) {
+                        suggestedName
+                    } else {
+                        "$suggestedName.xlsx"
+                    }
+                saveXlsxPayload = bytes to name
+                saveXlsxCb = onDone
+                saveXlsxLauncher.launch(name)
             }
         }
     }

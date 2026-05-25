@@ -107,6 +107,7 @@ fun FileEditorScreen(
     var editingLang by remember { mutableStateOf<LangEdit?>(null) }
     var showRetranslateConfirm by remember { mutableStateOf(false) }
     var showExportWithErrorsConfirm by remember { mutableStateOf(false) }
+    var pendingExportAction by remember { mutableStateOf<(() -> Unit)?>(null) }
 
     val onTranslationAction: () -> Unit = {
         if (state.isExportReady && !state.isRunning && !state.isPaused) {
@@ -129,22 +130,36 @@ fun FileEditorScreen(
     val exportCancelledMessage = stringResource(Res.string.file_editor_export_cancelled)
     val exportNotReadyMessage = stringResource(Res.string.file_editor_export_not_ready)
 
-    fun performExport() {
+    fun performExportXml() {
         val xml = controller.exportXml()
         xmlFileAccess.launchSaveXml(xml, state.fileName) { ok ->
             controller.setExportMessage(if (ok) exportedMessage else exportCancelledMessage)
         }
     }
 
-    fun onExportClick() {
+    fun performExportXlsx() {
+        val bytes = controller.exportXlsxBytes()
+        xmlFileAccess.launchSaveSpreadsheet(bytes, controller.suggestedXlsxFileName()) { ok ->
+            controller.setExportMessage(if (ok) exportedMessage else exportCancelledMessage)
+        }
+    }
+
+    fun runExportAction(
+        requiresComplete: Boolean,
+        action: () -> Unit,
+    ) {
         if (workflowMode == TranslationWorkflowMode.INCREMENTAL && !hasTargetBaseline) return
         when {
-            state.errorCount > 0 -> showExportWithErrorsConfirm = true
-            state.isExportReady -> performExport()
-            else ->
+            state.errorCount > 0 -> {
+                pendingExportAction = action
+                showExportWithErrorsConfirm = true
+            }
+            state.isExportReady -> action()
+            requiresComplete ->
                 scope.launch {
                     snackbarHostState.showSnackbar(exportNotReadyMessage)
                 }
+            else -> action()
         }
     }
 
@@ -237,7 +252,8 @@ fun FileEditorScreen(
                                     exportEnabled =
                                         workflowMode == TranslationWorkflowMode.FULL || hasTargetBaseline,
                                     onTranslationAction = onTranslationAction,
-                                    onExportClick = { onExportClick() },
+                                    onExportClick = { runExportAction(requiresComplete = true) { performExportXml() } },
+                                    onExportXlsxClick = { runExportAction(requiresComplete = true) { performExportXlsx() } },
                                     modifier = Modifier.weight(1f),
                                 )
                             }
@@ -260,7 +276,8 @@ fun FileEditorScreen(
                                     exportEnabled =
                                         workflowMode == TranslationWorkflowMode.FULL || hasTargetBaseline,
                                     onTranslationAction = onTranslationAction,
-                                    onExportClick = { onExportClick() },
+                                    onExportClick = { runExportAction(requiresComplete = true) { performExportXml() } },
+                                    onExportXlsxClick = { runExportAction(requiresComplete = true) { performExportXlsx() } },
                                 )
                             }
                         }
@@ -321,7 +338,10 @@ fun FileEditorScreen(
 
     if (showExportWithErrorsConfirm) {
         AlertDialog(
-            onDismissRequest = { showExportWithErrorsConfirm = false },
+            onDismissRequest = {
+                showExportWithErrorsConfirm = false
+                pendingExportAction = null
+            },
             title = { Text(stringResource(Res.string.file_editor_export_confirm_title)) },
             text = {
                 Text(
@@ -333,14 +353,20 @@ fun FileEditorScreen(
                 TextButton(
                     onClick = {
                         showExportWithErrorsConfirm = false
-                        performExport()
+                        pendingExportAction?.invoke()
+                        pendingExportAction = null
                     },
                 ) {
                     Text(stringResource(Res.string.file_editor_export_confirm_continue))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showExportWithErrorsConfirm = false }) {
+                TextButton(
+                    onClick = {
+                        showExportWithErrorsConfirm = false
+                        pendingExportAction = null
+                    },
+                ) {
                     Text(stringResource(Res.string.common_cancel))
                 }
             },

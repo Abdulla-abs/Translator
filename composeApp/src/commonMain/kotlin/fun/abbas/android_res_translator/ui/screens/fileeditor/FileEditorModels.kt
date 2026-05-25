@@ -29,6 +29,8 @@ data class FileEditorSessionSnapshot(
     val keyFilter: String = "",
     val isPaused: Boolean = false,
     val forceTranslation: Boolean = false,
+    val sourceLang: String? = null,
+    val targetLang: String? = null,
 )
 
 fun FileEditorState.toSessionSnapshot(): FileEditorSessionSnapshot =
@@ -37,6 +39,8 @@ fun FileEditorState.toSessionSnapshot(): FileEditorSessionSnapshot =
         keyFilter = keyFilter,
         isPaused = isPaused,
         forceTranslation = forceTranslation,
+        sourceLang = sourceLang,
+        targetLang = targetLang,
     )
 
 data class FileEditorState(

@@ -37,5 +37,7 @@ fun RecentXmlProject.withEditorState(state: FileEditorState): RecentXmlProject {
                 state.pendingCount == 0 &&
                 state.errorCount == 0,
         modifiedAtEpochMs = currentEpochMillis(),
+        sourceLang = state.sourceLang,
+        targetLang = state.targetLang,
     )
 }

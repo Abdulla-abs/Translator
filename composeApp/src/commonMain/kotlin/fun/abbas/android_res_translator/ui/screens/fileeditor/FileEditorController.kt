@@ -4,6 +4,8 @@ import `fun`.abbas.android_res_translator.core.resources.model.StringResourceFil
 import `fun`.abbas.android_res_translator.core.resources.planner.IncrementalTranslationPlanner
 import `fun`.abbas.android_res_translator.core.resources.planner.TranslationWorkflowMode
 import `fun`.abbas.android_res_translator.core.resources.planner.toXmlEntryUiList
+import `fun`.abbas.android_res_translator.core.resources.export.StringsMatrixBuilder
+import `fun`.abbas.android_res_translator.core.resources.export.StringsMatrixExporter
 import `fun`.abbas.android_res_translator.core.resources.xml.StringsXmlCodec
 import `fun`.abbas.android_res_translator.core.translation.TranslationDebugLog
 import `fun`.abbas.android_res_translator.core.translation.TranslationOutcome
@@ -107,6 +109,8 @@ class FileEditorController(
                 isRunning = false,
                 exportMessage = null,
                 forceTranslation = snapshot.forceTranslation,
+                sourceLang = snapshot.sourceLang?.takeIf { lang -> lang.isNotBlank() } ?: it.sourceLang,
+                targetLang = snapshot.targetLang?.takeIf { lang -> lang.isNotBlank() } ?: it.targetLang,
             )
         }
     }
@@ -316,6 +320,33 @@ class FileEditorController(
         if (!_state.value.isRunning) {
             startTranslation()
         }
+    }
+
+    fun exportXlsxBytes(): ByteArray {
+        val current = _state.value
+        val targetBaseline =
+            targetBaselineXml?.let { xml ->
+                runCatching { StringsXmlCodec.parse(xml) }.getOrNull()
+            }
+        val matrix =
+            StringsMatrixBuilder.buildForFileEditor(
+                sourceFile = parsedFile,
+                targetBaseline = targetBaseline,
+                sourceLang = current.sourceLang,
+                targetLang = current.targetLang,
+                entries = current.entries,
+            )
+        return StringsMatrixExporter.encodeXlsx(matrix)
+    }
+
+    fun suggestedXlsxFileName(): String {
+        val base =
+            _state.value.fileName
+                .removeSuffix(".xml")
+                .removeSuffix(".XML")
+                .ifBlank { "strings" }
+        val lang = _state.value.targetLang.trim().ifEmpty { "target" }
+        return "${base}_$lang.xlsx"
     }
 
     fun exportXml(): String {
