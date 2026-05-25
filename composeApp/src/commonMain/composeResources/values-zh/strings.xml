@@ -45,6 +45,30 @@
     <string name="file_project_modified_hours">%1$d 小时前修改</string>
     <string name="file_project_modified_days">%1$d 天前修改</string>
 
+    <string name="compare_projects_title">文件比对</string>
+    <string name="compare_create_card_title">创建比对项目</string>
+    <string name="compare_create_card_hint">上传两个 strings.xml 并按 key 并排比对</string>
+    <string name="compare_create_dialog_title">项目名称</string>
+    <string name="compare_delete_title">删除比对项目</string>
+    <string name="compare_delete_message">确定删除「%1$s」？比对数据将被移除。</string>
+    <string name="compare_upload_left_title">上传文件 A</string>
+    <string name="compare_upload_left_hint">拖放或选择第一个 strings.xml</string>
+    <string name="compare_upload_right_title">上传文件 B</string>
+    <string name="compare_upload_right_hint">拖放或选择第二个 strings.xml</string>
+    <string name="compare_run_button">比对</string>
+    <string name="compare_grid_column_key">key</string>
+    <string name="compare_detail_summary">共 %1$d 行 · %2$d 处差异</string>
+    <string name="compare_detail_diff_count">%1$d 行内容不同（红色高亮）</string>
+    <string name="compare_detail_parse_error">XML 解析失败：%1$s</string>
+    <string name="compare_cell_copied_snackbar">已将 %1$s 复制到剪切板</string>
+    <string name="compare_project_files_ready">%1$s 对比 %2$s</string>
+    <string name="compare_upload_uploaded_title">已上传文件 %1$s</string>
+    <string name="compare_upload_reupload_hint">您可以重新上传以更改对比文件</string>
+    <string name="compare_project_status_ready">就绪</string>
+    <string name="compare_project_status_partial">待补全</string>
+    <string name="compare_project_status_pending">待上传</string>
+    <string name="compare_project_upload_progress">已上传 %1$d / 2 个文件</string>
+
     <string name="quick_translate_title">快速翻译</string>
     <string name="quick_translate_placeholder">粘贴字符串或输入文本…</string>
     <string name="quick_translate_button">翻译</string>

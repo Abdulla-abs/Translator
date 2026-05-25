@@ -4,12 +4,20 @@ import java.io.File
 
 /** 单元测试可注入临时目录。 */
 internal var translationProjectsRootOverride: String? = null
+internal var compareProjectsRootOverride: String? = null
 
 actual fun appTranslationProjectsRoot(): String =
     translationProjectsRootOverride
         ?: File(
             System.getProperty("user.home"),
             ".android_res_translator${File.separator}translation-projects",
+        ).absolutePath
+
+actual fun appCompareProjectsRoot(): String =
+    compareProjectsRootOverride
+        ?: File(
+            System.getProperty("user.home"),
+            ".android_res_translator${File.separator}compare-projects",
         ).absolutePath
 
 actual fun readTextFile(path: String): String = File(path).readText(Charsets.UTF_8)

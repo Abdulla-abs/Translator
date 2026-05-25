@@ -64,6 +64,7 @@ import `fun`.abbas.android_res_translator.ui.screens.MainDashboardScreen
 import `fun`.abbas.android_res_translator.ui.screens.SettingsScreen
 import `fun`.abbas.android_res_translator.ui.screens.fileeditor.FileEditorControllerStore
 import `fun`.abbas.android_res_translator.ui.screens.main.createTranslationProjectRepository
+import `fun`.abbas.android_res_translator.ui.screens.compare.createCompareProjectRepository
 import `fun`.abbas.android_res_translator.ui.settings.AppSettingsRepository
 import `fun`.abbas.android_res_translator.ui.settings.RepositorySecretsProvider
 import `fun`.abbas.android_res_translator.ui.settings.createAppSettingsRepository
@@ -108,6 +109,7 @@ fun AppRoot(settingsRepository: AppSettingsRepository = createAppSettingsReposit
     val xmlFileAccess = rememberXmlFileAccess()
     val editorScope = rememberCoroutineScope()
     val projectRepository = remember(editorScope) { createTranslationProjectRepository(editorScope) }
+    val compareProjectRepository = remember(editorScope) { createCompareProjectRepository(editorScope) }
     val editorControllerStore =
         remember(services, editorScope) {
             FileEditorControllerStore(services, editorScope)
@@ -240,6 +242,7 @@ fun AppRoot(settingsRepository: AppSettingsRepository = createAppSettingsReposit
                                         services = services,
                                         xmlFileAccess = xmlFileAccess,
                                         projectRepository = projectRepository,
+                                        compareProjectRepository = compareProjectRepository,
                                         editorControllerStore = editorControllerStore,
                                         onNavigateToFiles = { navigateToRootTab(backStack, RootRoute.Files) },
                                     )
@@ -348,6 +351,7 @@ fun AppRoot(settingsRepository: AppSettingsRepository = createAppSettingsReposit
                                     services = services,
                                     xmlFileAccess = xmlFileAccess,
                                     projectRepository = projectRepository,
+                                    compareProjectRepository = compareProjectRepository,
                                     editorControllerStore = editorControllerStore,
                                     onNavigateToFiles = { navigateToRootTab(backStack, RootRoute.Files) },
                                 )

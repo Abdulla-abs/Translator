@@ -35,4 +35,21 @@ class StringsXmlCodecTest {
             assertEquals(first.stringArrays[k]?.items, second.stringArrays[k]?.items)
         }
     }
+
+    @Test
+    fun parseAndRoundTrip_plurals() {
+        val xml =
+            """
+            <resources>
+                <plurals name="errors">
+                    <item quantity="one">One error</item>
+                    <item quantity="other">%d errors</item>
+                </plurals>
+            </resources>
+            """.trimIndent()
+        val parsed = StringsXmlCodec.parse(xml)
+        assertEquals("One error", parsed.plurals["errors"]?.items?.get("one"))
+        val again = StringsXmlCodec.parse(StringsXmlCodec.serialize(parsed))
+        assertEquals(parsed.plurals, again.plurals)
+    }
 }

@@ -39,10 +39,25 @@ fun UploadXmlCard(
     onDrop: (List<DroppedXmlFile>) -> Unit,
     modifier: Modifier = Modifier,
     textColor: Color? = null,
+    uploadedFileName: String? = null,
+    uploadedTitleRes: StringResource? = null,
+    uploadedHintRes: StringResource? = null,
 ) {
     val colors = MaterialTheme.colorScheme
     val titleColor = textColor ?: colors.onSurface
     val hintColor = textColor ?: colors.outline
+    val titleText =
+        if (uploadedFileName != null && uploadedTitleRes != null) {
+            stringResource(uploadedTitleRes, uploadedFileName)
+        } else {
+            stringResource(titleRes)
+        }
+    val hintText =
+        if (uploadedFileName != null && uploadedHintRes != null) {
+            stringResource(uploadedHintRes)
+        } else {
+            stringResource(hintRes)
+        }
     val dropModifier = rememberUploadXmlDropModifier(onDrop)
     Surface(
         onClick = onClick,
@@ -70,13 +85,13 @@ fun UploadXmlCard(
             }
             Spacer(Modifier.height(AppSpacing.sm))
             Text(
-                stringResource(titleRes),
+                titleText,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold,
                 color = titleColor,
             )
             Text(
-                stringResource(hintRes),
+                hintText,
                 style = MaterialTheme.typography.bodySmall,
                 color = hintColor,
             )

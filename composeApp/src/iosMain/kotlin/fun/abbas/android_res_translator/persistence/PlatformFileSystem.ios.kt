@@ -20,6 +20,16 @@ actual fun appTranslationProjectsRoot(): String {
     return "$base/translation-projects"
 }
 
+actual fun appCompareProjectsRoot(): String {
+    val urls =
+        NSFileManager.defaultManager.URLsForDirectory(
+            directory = platform.Foundation.NSApplicationSupportDirectory,
+            inDomains = NSUserDomainMask,
+        )
+    val base = (urls.firstOrNull() as? platform.Foundation.NSURL)?.path ?: error("无法解析应用目录")
+    return "$base/compare-projects"
+}
+
 actual fun readTextFile(path: String): String {
     val content =
         NSString.stringWithContentsOfFile(

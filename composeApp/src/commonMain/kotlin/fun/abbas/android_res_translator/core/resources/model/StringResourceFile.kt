@@ -21,6 +21,7 @@ data class StringArrayEntry(
 data class StringResourceFile(
     val strings: Map<String, StringEntry> = emptyMap(),
     val stringArrays: Map<String, StringArrayEntry> = emptyMap(),
+    val plurals: Map<String, PluralEntry> = emptyMap(),
 ) {
     /** 计划文档中的 `entries["app_name"]` 语义：`<string>` 的 name → 文本。 */
     val entries: Map<String, String>

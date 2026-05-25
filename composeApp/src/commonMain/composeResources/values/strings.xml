@@ -45,6 +45,30 @@
     <string name="file_project_modified_hours">Modified %1$dh ago</string>
     <string name="file_project_modified_days">Modified %1$dd ago</string>
 
+    <string name="compare_projects_title">File Compare</string>
+    <string name="compare_create_card_title">Create compare project</string>
+    <string name="compare_create_card_hint">Upload two strings.xml files and compare keys side by side</string>
+    <string name="compare_create_dialog_title">Project name</string>
+    <string name="compare_delete_title">Delete compare project</string>
+    <string name="compare_delete_message">Delete "%1$s"? Compare data will be removed.</string>
+    <string name="compare_upload_left_title">Upload file A</string>
+    <string name="compare_upload_left_hint">Drop or pick the first strings.xml</string>
+    <string name="compare_upload_right_title">Upload file B</string>
+    <string name="compare_upload_right_hint">Drop or pick the second strings.xml</string>
+    <string name="compare_run_button">Compare</string>
+    <string name="compare_grid_column_key">key</string>
+    <string name="compare_detail_summary">%1$d rows · %2$d differences</string>
+    <string name="compare_detail_diff_count">%1$d rows differ (highlighted in red)</string>
+    <string name="compare_detail_parse_error">Failed to parse XML: %1$s</string>
+    <string name="compare_cell_copied_snackbar">Copied "%1$s" to clipboard</string>
+    <string name="compare_project_files_ready">%1$s vs %2$s</string>
+    <string name="compare_upload_uploaded_title">Uploaded file %1$s</string>
+    <string name="compare_upload_reupload_hint">You can re-upload to replace this compare file</string>
+    <string name="compare_project_status_ready">Ready</string>
+    <string name="compare_project_status_partial">Partial</string>
+    <string name="compare_project_status_pending">Pending</string>
+    <string name="compare_project_upload_progress">%1$d of 2 files uploaded</string>
+
     <string name="quick_translate_title">Quick Translate</string>
     <string name="quick_translate_placeholder">Paste strings or enter text...</string>
     <string name="quick_translate_button">Translate</string>

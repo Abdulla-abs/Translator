@@ -6,6 +6,9 @@ import java.io.File
 actual fun appTranslationProjectsRoot(): String =
     File(AndroidSettingsContext.require().filesDir, "translation-projects").absolutePath
 
+actual fun appCompareProjectsRoot(): String =
+    File(AndroidSettingsContext.require().filesDir, "compare-projects").absolutePath
+
 actual fun readTextFile(path: String): String = File(path).readText(Charsets.UTF_8)
 
 actual fun writeTextFileAtomic(path: String, content: String) {

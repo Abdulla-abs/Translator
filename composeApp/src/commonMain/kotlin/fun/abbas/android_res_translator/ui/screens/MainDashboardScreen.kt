@@ -31,6 +31,11 @@ import `fun`.abbas.android_res_translator.ui.files.WithFilePermissions
 import `fun`.abbas.android_res_translator.ui.screens.fileeditor.FileEditorControllerStore
 import `fun`.abbas.android_res_translator.ui.screens.fileeditor.FileEditorProjectSettingsScreen
 import `fun`.abbas.android_res_translator.ui.screens.fileeditor.FileEditorScreen
+import `fun`.abbas.android_res_translator.ui.screens.compare.CompareDetailScreen
+import `fun`.abbas.android_res_translator.ui.screens.compare.CompareProject
+import `fun`.abbas.android_res_translator.ui.screens.compare.CompareProjectRepository
+import `fun`.abbas.android_res_translator.ui.screens.compare.CompareProjectsSection
+import `fun`.abbas.android_res_translator.ui.screens.compare.CompareUploadScreen
 import `fun`.abbas.android_res_translator.ui.screens.main.DashboardInsightSection
 import `fun`.abbas.android_res_translator.ui.screens.main.FileProjectsSection
 import `fun`.abbas.android_res_translator.ui.screens.main.QuickTranslateSection
@@ -46,6 +51,7 @@ fun MainDashboardScreen(
     services: TranslationServices,
     xmlFileAccess: XmlFileAccess,
     projectRepository: TranslationProjectRepository,
+    compareProjectRepository: CompareProjectRepository,
     editorControllerStore: FileEditorControllerStore,
     onNavigateToFiles: () -> Unit,
     modifier: Modifier = Modifier,
@@ -57,10 +63,21 @@ fun MainDashboardScreen(
     var mode by remember { mutableStateOf<DashboardUiMode>(DashboardUiMode.Home) }
     /** 新建项目后立刻进详情时，projects 列表可能尚未刷新，用此兜底。 */
     var openingProject by remember { mutableStateOf<RecentXmlProject?>(null) }
+    var openingCompareProject by remember { mutableStateOf<CompareProject?>(null) }
 
     fun openEditor(project: RecentXmlProject) {
         openingProject = project
         mode = DashboardUiMode.Editor(project.id)
+    }
+
+    fun openCompareUpload(project: CompareProject) {
+        openingCompareProject = project
+        mode = DashboardUiMode.CompareUpload(project.id)
+    }
+
+    fun openCompareDetail(project: CompareProject) {
+        openingCompareProject = project
+        mode = DashboardUiMode.CompareDetail(project.id)
     }
 
     fun onIncrementalUpload(
@@ -104,9 +121,48 @@ fun MainDashboardScreen(
     }
 
     val projects by projectRepository.projects.collectAsState()
+    val compareProjects by compareProjectRepository.projects.collectAsState()
 
     WithFilePermissions {
         when (val current = mode) {
+            is DashboardUiMode.CompareUpload -> {
+                val project =
+                    compareProjects.find { it.id == current.projectId }
+                        ?: openingCompareProject?.takeIf { it.id == current.projectId }
+                if (project != null) {
+                    CompareUploadScreen(
+                        project = project,
+                        repository = compareProjectRepository,
+                        xmlFileAccess = xmlFileAccess,
+                        onBack = {
+                            openingCompareProject = null
+                            mode = DashboardUiMode.Home
+                        },
+                        onCompareReady = { ready ->
+                            openCompareDetail(ready)
+                        },
+                        modifier = modifier,
+                    )
+                }
+            }
+
+            is DashboardUiMode.CompareDetail -> {
+                val project =
+                    compareProjects.find { it.id == current.projectId }
+                        ?: openingCompareProject?.takeIf { it.id == current.projectId }
+                if (project != null) {
+                    CompareDetailScreen(
+                        project = project,
+                        repository = compareProjectRepository,
+                        onBack = {
+                            openingCompareProject = null
+                            mode = DashboardUiMode.CompareUpload(project.id)
+                        },
+                        modifier = modifier,
+                    )
+                }
+            }
+
             is DashboardUiMode.Editor -> {
                 val project =
                     projects.find { it.id == current.projectId }
@@ -261,6 +317,30 @@ fun MainDashboardScreen(
                                     }
                                 },
                             )
+                            CompareProjectsSection(
+                                repository = compareProjectRepository,
+                                onCreateProject = { name ->
+                                    val created = compareProjectRepository.createProject(name)
+                                    openCompareUpload(created)
+                                },
+                                onProjectClick = { openCompareUpload(it) },
+                                onDeleteProject = { project ->
+                                    compareProjectRepository.deleteProject(project.id)
+                                    when (val currentMode = mode) {
+                                        is DashboardUiMode.CompareUpload -> {
+                                            if (currentMode.projectId == project.id) {
+                                                mode = DashboardUiMode.Home
+                                            }
+                                        }
+                                        is DashboardUiMode.CompareDetail -> {
+                                            if (currentMode.projectId == project.id) {
+                                                mode = DashboardUiMode.Home
+                                            }
+                                        }
+                                        else -> Unit
+                                    }
+                                },
+                            )
                             DashboardInsightSection()
                             Spacer(Modifier.height(AppSpacing.lg))
                         }
@@ -274,6 +354,14 @@ private sealed interface DashboardUiMode {
     data object Home : DashboardUiMode
 
     data class Editor(
+        val projectId: String,
+    ) : DashboardUiMode
+
+    data class CompareUpload(
+        val projectId: String,
+    ) : DashboardUiMode
+
+    data class CompareDetail(
         val projectId: String,
     ) : DashboardUiMode
 }

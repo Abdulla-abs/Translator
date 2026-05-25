@@ -2,6 +2,7 @@
 
 package `fun`.abbas.android_res_translator.core.resources.xml
 
+import `fun`.abbas.android_res_translator.core.resources.model.PluralEntry
 import `fun`.abbas.android_res_translator.core.resources.model.StringArrayEntry
 import `fun`.abbas.android_res_translator.core.resources.model.StringEntry
 import `fun`.abbas.android_res_translator.core.resources.model.StringResourceFile
@@ -20,6 +21,7 @@ object StringsXmlCodec {
         val reader = XmlStreaming.newReader(body)
         val strings = linkedMapOf<String, StringEntry>()
         val arrays = linkedMapOf<String, StringArrayEntry>()
+        val plurals = linkedMapOf<String, PluralEntry>()
         if (!reader.hasNext()) error("empty xml")
         var ev = reader.next()
         if (ev == EventType.START_DOCUMENT) {
@@ -45,6 +47,12 @@ object StringsXmlCodec {
                             val items = reader.readStringArrayItems()
                             arrays[name] = StringArrayEntry(name = name, items = items, translatable = tr)
                         }
+                        "plurals" -> {
+                            val name = reader.attrName() ?: error("plurals without name")
+                            val tr = reader.readTranslatableFlag()
+                            val items = reader.readPluralItems()
+                            plurals[name] = PluralEntry(name = name, items = items, translatable = tr)
+                        }
                         else -> reader.skipSubtree()
                     }
                 }
@@ -54,7 +62,7 @@ object StringsXmlCodec {
                 else -> Unit
             }
         }
-        return StringResourceFile(strings = strings, stringArrays = arrays)
+        return StringResourceFile(strings = strings, stringArrays = arrays, plurals = plurals)
     }
 
     fun serialize(file: StringResourceFile): String =
@@ -86,6 +94,23 @@ object StringsXmlCodec {
                     appendLine("</item>")
                 }
                 appendLine("    </string-array>")
+            }
+            for ((_, plural) in file.plurals.entries.sortedBy { it.key }) {
+                append("    <plurals name=\"")
+                append(escapeAttr(plural.name))
+                append("\"")
+                if (!plural.translatable) {
+                    append(" translatable=\"false\"")
+                }
+                appendLine(">")
+                for ((quantity, value) in plural.items.entries.sortedBy { it.key }) {
+                    append("        <item quantity=\"")
+                    append(escapeAttr(quantity))
+                    append("\">")
+                    append(escapeText(value))
+                    appendLine("</item>")
+                }
+                appendLine("    </plurals>")
             }
             appendLine("</resources>")
         }
@@ -152,6 +177,38 @@ object StringsXmlCodec {
             }
         }
         return items
+    }
+
+    private fun nl.adaptivity.xmlutil.XmlReader.readPluralItems(): Map<String, String> {
+        val items = linkedMapOf<String, String>()
+        while (hasNext()) {
+            when (val ev = next()) {
+                EventType.START_ELEMENT -> {
+                    when (localName) {
+                        "item" -> {
+                            val quantity = attrQuantity() ?: "other"
+                            items[quantity] = readTextUntilMatchingEnd()
+                        }
+                        else -> skipSubtree()
+                    }
+                }
+                EventType.END_ELEMENT -> {
+                    if (localName == "plurals") return items
+                }
+                else -> Unit
+            }
+        }
+        return items
+    }
+
+    private fun nl.adaptivity.xmlutil.XmlReader.attrQuantity(): String? {
+        val n = attributeCount
+        for (i in 0 until n) {
+            if (getAttributeLocalName(i) == "quantity") {
+                return getAttributeValue(i)
+            }
+        }
+        return null
     }
 
     private fun nl.adaptivity.xmlutil.XmlReader.skipSubtree() {
