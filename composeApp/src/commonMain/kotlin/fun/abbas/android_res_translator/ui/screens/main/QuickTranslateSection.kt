@@ -30,13 +30,17 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -66,6 +70,8 @@ import org.jetbrains.compose.resources.stringResource
 import `fun`.abbas.android_res_translator.ui.translation.ActiveTranslationEngine
 import `fun`.abbas.android_res_translator.ui.translation.LanguagePickerCatalog
 import `fun`.abbas.android_res_translator.ui.translation.TranslationEngineCatalog
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 
 @Composable
@@ -92,8 +98,6 @@ fun QuickTranslateSection(
     val copyToClipboard = rememberCopyToClipboardHandler()
     val copiedSnackbarMessage = stringResource(Res.string.quick_translate_copied_snackbar)
 
-    fun preferredVendorName(): String? = selectedEngine?.vendorName
-
     fun copyResultWithSnackbar(text: String) {
         val trimmed = text.trim()
         if (trimmed.isEmpty()) return
@@ -103,34 +107,55 @@ fun QuickTranslateSection(
         }
     }
 
-    fun performTranslate() {
+    val servicesState = rememberUpdatedState(services)
+    val snapState = rememberUpdatedState(snap)
+    val fromState = rememberUpdatedState(from)
+    val toState = rememberUpdatedState(to)
+    val engineState = rememberUpdatedState(selectedEngine)
+
+    suspend fun translateText(text: String) {
+        val trimmed = text.trim()
+        if (trimmed.isEmpty()) {
+            output = ""
+            error = null
+            loading = false
+            return
+        }
         error = null
         loading = true
-        scope.launch {
-            try {
-                when (
-                    val o =
-                        services.translatePlainText(
-                            input.trim(),
-                            from.trim(),
-                            to.trim(),
-                            preferredVendorName(),
-                        )
-                ) {
-                    is TranslationOutcome.Ok -> {
-                        output = o.value.translatedText
-                        copyResultWithSnackbar(o.value.translatedText)
-                    }
-                    is TranslationOutcome.Err -> {
-                        error = o.failure.toUserMessage(snap.uiLocale)
-                        output = ""
-                    }
+        try {
+            when (
+                val o =
+                    servicesState.value.translatePlainText(
+                        trimmed,
+                        fromState.value.trim(),
+                        toState.value.trim(),
+                        engineState.value?.vendorName,
+                    )
+            ) {
+                is TranslationOutcome.Ok -> output = o.value.translatedText
+                is TranslationOutcome.Err -> {
+                    error = o.failure.toUserMessage(snapState.value.uiLocale)
+                    output = ""
                 }
-            } finally {
-                loading = false
             }
+        } finally {
+            loading = false
         }
     }
+
+    fun performTranslate() {
+        scope.launch { translateText(input) }
+    }
+
+    LaunchedEffect(snap.quickTranslateAuto) {
+        if (!snap.quickTranslateAuto) return@LaunchedEffect
+        snapshotFlow { input }
+            .debounce(500)
+            .collectLatest { text -> translateText(text) }
+    }
+
+    val showTranslateButton = !snap.quickTranslateAuto
 
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -179,6 +204,7 @@ fun QuickTranslateSection(
                                 output = output,
                                 loading = loading,
                                 input = input,
+                                showTranslateButton = showTranslateButton,
                                 onEditLang = { editingLang = LangEdit.Target },
                                 onTranslate = ::performTranslate,
                                 onCopy = { copyResultWithSnackbar(output) },
@@ -201,6 +227,7 @@ fun QuickTranslateSection(
                                 output = output,
                                 loading = loading,
                                 input = input,
+                                showTranslateButton = showTranslateButton,
                                 onEditLang = { editingLang = LangEdit.Target },
                                 onTranslate = ::performTranslate,
                                 onCopy = { copyResultWithSnackbar(output) },
@@ -331,6 +358,7 @@ private fun QuickTranslateTargetColumn(
     output: String,
     loading: Boolean,
     input: String,
+    showTranslateButton: Boolean,
     onEditLang: () -> Unit,
     onTranslate: () -> Unit,
     onCopy: () -> Unit,
@@ -389,19 +417,25 @@ private fun QuickTranslateTargetColumn(
                     modifier = Modifier.padding(start = AppSpacing.xs),
                 )
             }
-            Button(
-                onClick = onTranslate,
-                enabled = !loading && input.isNotBlank(),
-                shape = RoundedCornerShape(999.dp),
-                colors =
-                    ButtonDefaults.buttonColors(
-                        containerColor = colors.primaryContainer,
-                        contentColor = colors.onPrimaryContainer,
-                    ),
-                elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp),
-            ) {
-                Icon(Icons.Default.AutoFixHigh, contentDescription = null, modifier = Modifier.size(18.dp))
-                Text(stringResource(Res.string.quick_translate_button), fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = AppSpacing.xs))
+            AnimatedVisibility(visible = showTranslateButton) {
+                Button(
+                    onClick = onTranslate,
+                    enabled = !loading && input.isNotBlank(),
+                    shape = RoundedCornerShape(999.dp),
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = colors.primaryContainer,
+                            contentColor = colors.onPrimaryContainer,
+                        ),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp),
+                ) {
+                    Icon(Icons.Default.AutoFixHigh, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Text(
+                        stringResource(Res.string.quick_translate_button),
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(start = AppSpacing.xs),
+                    )
+                }
             }
         }
     }

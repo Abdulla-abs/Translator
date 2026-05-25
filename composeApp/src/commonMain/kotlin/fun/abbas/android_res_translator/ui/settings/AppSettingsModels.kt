@@ -29,6 +29,8 @@ data class AppSettingsSnapshot(
     val appAppearance: AppAppearance = AppAppearance.Classic,
     val consumerMode: ConsumerMode = ConsumerMode.FILLED,
     val forceTranslation: Boolean = false,
+    /** `true`：输入防抖后自动翻译并隐藏翻译按钮；`false`：仅手动点击翻译按钮。 */
+    val quickTranslateAuto: Boolean = true,
     val uiLocale: AppLocale = AppLocale.En,
 ) {
     /** 仅非空项，供 [SecretsProvider] 读取（空串表示未配置）。 */
@@ -55,6 +57,7 @@ data class AppSettingsSnapshot(
         const val KEY_APP_APPEARANCE = "ui.appAppearance"
         const val KEY_CONSUMER_MODE = "ui.consumerMode"
         const val KEY_FORCE_TRANSLATION = "ui.forceTranslation"
+        const val KEY_QUICK_TRANSLATE_AUTO = "ui.quickTranslateAuto"
         const val KEY_UI_LOCALE = "ui.uiLocale"
 
         fun fromFlatMap(map: Map<String, String>): AppSettingsSnapshot =
@@ -80,6 +83,7 @@ data class AppSettingsSnapshot(
                         else -> ConsumerMode.FILLED
                     },
                 forceTranslation = map[KEY_FORCE_TRANSLATION]?.equals("true", ignoreCase = true) == true,
+                quickTranslateAuto = map[KEY_QUICK_TRANSLATE_AUTO]?.equals("false", ignoreCase = true) != true,
                 uiLocale = AppLocale.fromTag(map[KEY_UI_LOCALE]),
             )
     }
@@ -103,5 +107,6 @@ fun AppSettingsSnapshot.toPersistenceMap(): Map<String, String> =
         put(AppSettingsSnapshot.KEY_APP_APPEARANCE, appAppearance.name)
         put(AppSettingsSnapshot.KEY_CONSUMER_MODE, consumerMode.name)
         put(AppSettingsSnapshot.KEY_FORCE_TRANSLATION, forceTranslation.toString())
+        put(AppSettingsSnapshot.KEY_QUICK_TRANSLATE_AUTO, quickTranslateAuto.toString())
         put(AppSettingsSnapshot.KEY_UI_LOCALE, uiLocale.tag)
     }

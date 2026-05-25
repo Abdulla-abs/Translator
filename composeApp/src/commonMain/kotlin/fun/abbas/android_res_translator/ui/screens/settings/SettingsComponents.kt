@@ -61,6 +61,8 @@ import androidrestranslator.composeapp.generated.resources.settings_merge_strate
 import androidrestranslator.composeapp.generated.resources.settings_merge_strategy_hint
 import androidrestranslator.composeapp.generated.resources.settings_page_subtitle
 import androidrestranslator.composeapp.generated.resources.settings_page_title
+import androidrestranslator.composeapp.generated.resources.settings_quick_translate_auto
+import androidrestranslator.composeapp.generated.resources.settings_quick_translate_auto_hint
 import androidrestranslator.composeapp.generated.resources.settings_source_language
 import androidrestranslator.composeapp.generated.resources.settings_target_language
 import androidrestranslator.composeapp.generated.resources.settings_theme_classic
@@ -318,6 +320,13 @@ fun SettingsStrategiesCard(
                 AppearanceThemeRow(
                     selected = draft.appAppearance,
                     onSelect = { appearance -> onDraft(draft.copy(appAppearance = appearance)) },
+                )
+
+                StrategyToggleRow(
+                    title = stringResource(Res.string.settings_quick_translate_auto),
+                    description = stringResource(Res.string.settings_quick_translate_auto_hint),
+                    checked = draft.quickTranslateAuto,
+                    onCheckedChange = { onDraft(draft.copy(quickTranslateAuto = it)) },
                 )
 
                 StrategyToggleRow(
