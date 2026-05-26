@@ -114,4 +114,28 @@ private class JvmXmlFileAccess : XmlFileAccess {
             SwingUtilities.invokeLater { onDone(ok) }
         }.start()
     }
+
+    override fun launchPickSpreadsheet(onResult: (Result<ByteArray>) -> Unit) {
+        Thread {
+            val result =
+                try {
+                    val dialog = FileDialog(null as Frame?, "选择 Excel", FileDialog.LOAD)
+                    dialog.setFilenameFilter { _, name ->
+                        name.endsWith(".xlsx", ignoreCase = true) ||
+                            name.endsWith(".xls", ignoreCase = true)
+                    }
+                    dialog.isVisible = true
+                    val dir = dialog.directory
+                    val fileName = dialog.file
+                    if (dir == null || fileName == null) {
+                        Result.failure(Exception("已取消"))
+                    } else {
+                        Result.success(File(dir, fileName).readBytes())
+                    }
+                } catch (e: Exception) {
+                    Result.failure(e)
+                }
+            SwingUtilities.invokeLater { onResult(result) }
+        }.start()
+    }
 }

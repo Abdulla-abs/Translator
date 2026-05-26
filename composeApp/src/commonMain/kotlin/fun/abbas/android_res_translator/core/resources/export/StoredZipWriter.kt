@@ -65,11 +65,10 @@ internal object StoredZipWriter {
         writeU16(buf, 28, nameBytes.size)
         writeU16(buf, 30, 0)
         writeU16(buf, 32, 0)
-        writeU16(buf, 34, 0)
-        writeU16(buf, 36, 0)
-        writeU16(buf, 38, 0)
-        writeU32(buf, 40, 0)
-        writeU32(buf, 44, offset)
+        writeU16(buf, 34, 0) // disk number start
+        writeU16(buf, 36, 0) // internal file attributes
+        writeU32(buf, 38, 0) // external file attributes
+        writeU32(buf, 42, offset) // relative offset of local header
         nameBytes.copyInto(buf, 46)
         return buf
     }

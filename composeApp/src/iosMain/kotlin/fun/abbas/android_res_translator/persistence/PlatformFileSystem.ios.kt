@@ -30,6 +30,16 @@ actual fun appCompareProjectsRoot(): String {
     return "$base/compare-projects"
 }
 
+actual fun appResMultiProjectsRoot(): String {
+    val urls =
+        NSFileManager.defaultManager.URLsForDirectory(
+            directory = platform.Foundation.NSApplicationSupportDirectory,
+            inDomains = NSUserDomainMask,
+        )
+    val base = (urls.firstOrNull() as? platform.Foundation.NSURL)?.path ?: error("无法解析应用目录")
+    return "$base/res-multi-projects"
+}
+
 actual fun readTextFile(path: String): String {
     val content =
         NSString.stringWithContentsOfFile(
@@ -70,4 +80,27 @@ actual fun deletePathRecursively(path: String): Boolean {
     if (!fileExists(path)) return true
     NSFileManager.defaultManager.removeItemAtPath(path, error = null)
     return !fileExists(path)
+}
+
+actual fun listFileNamesInDirectory(directoryPath: String): List<String> {
+    if (!isDirectoryPath(directoryPath)) return emptyList()
+    val names =
+        NSFileManager.defaultManager.contentsOfDirectoryAtPath(
+            directoryPath,
+            error = null,
+        ) as? List<*>
+    return names?.mapNotNull { it as? String } ?: emptyList()
+}
+
+actual fun isDirectoryPath(path: String): Boolean {
+    if (!fileExists(path)) return false
+    val attrs = NSFileManager.defaultManager.attributesOfItemAtPath(path, error = null)
+    val type = attrs?.get(platform.Foundation.NSFileType) as? String
+    return type == platform.Foundation.NSFileTypeDirectory
+}
+
+actual fun copyDirectoryRecursively(sourcePath: String, destinationPath: String): Boolean {
+    if (!fileExists(sourcePath) || !isDirectoryPath(sourcePath)) return false
+    if (fileExists(destinationPath)) deletePathRecursively(destinationPath)
+    return NSFileManager.defaultManager.copyItemAtPath(sourcePath, destinationPath, error = null)
 }

@@ -38,6 +38,12 @@ import `fun`.abbas.android_res_translator.ui.screens.compare.CompareProjectsSect
 import `fun`.abbas.android_res_translator.ui.screens.compare.CompareUploadScreen
 import `fun`.abbas.android_res_translator.ui.screens.main.DashboardInsightSection
 import `fun`.abbas.android_res_translator.ui.screens.main.FileProjectsSection
+import `fun`.abbas.android_res_translator.ui.screens.resmulti.ResMultiProject
+import `fun`.abbas.android_res_translator.ui.screens.resmulti.ResMultiProjectRepository
+import `fun`.abbas.android_res_translator.core.resources.export.StringsMatrix
+import `fun`.abbas.android_res_translator.ui.screens.resmulti.ResMultiImportCompareScreen
+import `fun`.abbas.android_res_translator.ui.screens.resmulti.ResMultiProjectScreen
+import `fun`.abbas.android_res_translator.ui.screens.resmulti.ResMultiProjectsSection
 import `fun`.abbas.android_res_translator.ui.screens.main.QuickTranslateSection
 import `fun`.abbas.android_res_translator.ui.screens.main.RecentXmlProject
 import `fun`.abbas.android_res_translator.ui.screens.main.TranslationProjectRepository
@@ -52,6 +58,7 @@ fun MainDashboardScreen(
     xmlFileAccess: XmlFileAccess,
     projectRepository: TranslationProjectRepository,
     compareProjectRepository: CompareProjectRepository,
+    resMultiProjectRepository: ResMultiProjectRepository,
     editorControllerStore: FileEditorControllerStore,
     onNavigateToFiles: () -> Unit,
     modifier: Modifier = Modifier,
@@ -64,6 +71,8 @@ fun MainDashboardScreen(
     /** 新建项目后立刻进详情时，projects 列表可能尚未刷新，用此兜底。 */
     var openingProject by remember { mutableStateOf<RecentXmlProject?>(null) }
     var openingCompareProject by remember { mutableStateOf<CompareProject?>(null) }
+    var openingResMultiProject by remember { mutableStateOf<ResMultiProject?>(null) }
+    var resMultiImportMatrix by remember { mutableStateOf<StringsMatrix?>(null) }
 
     fun openEditor(project: RecentXmlProject) {
         openingProject = project
@@ -78,6 +87,20 @@ fun MainDashboardScreen(
     fun openCompareDetail(project: CompareProject) {
         openingCompareProject = project
         mode = DashboardUiMode.CompareDetail(project.id)
+    }
+
+    fun openResMultiProject(project: ResMultiProject) {
+        openingResMultiProject = project
+        mode = DashboardUiMode.ResMultiDetail(project.id)
+    }
+
+    fun openResMultiImportCompare(
+        project: ResMultiProject,
+        matrix: StringsMatrix,
+    ) {
+        openingResMultiProject = project
+        resMultiImportMatrix = matrix
+        mode = DashboardUiMode.ResMultiImportCompare(project.id)
     }
 
     fun onIncrementalUpload(
@@ -122,9 +145,49 @@ fun MainDashboardScreen(
 
     val projects by projectRepository.projects.collectAsState()
     val compareProjects by compareProjectRepository.projects.collectAsState()
+    val resMultiProjects by resMultiProjectRepository.projects.collectAsState()
 
     WithFilePermissions {
         when (val current = mode) {
+            is DashboardUiMode.ResMultiDetail -> {
+                val project =
+                    resMultiProjects.find { it.id == current.projectId }
+                        ?: openingResMultiProject?.takeIf { it.id == current.projectId }
+                if (project != null) {
+                    ResMultiProjectScreen(
+                        project = project,
+                        repository = resMultiProjectRepository,
+                        onBack = {
+                            openingResMultiProject = null
+                            mode = DashboardUiMode.Home
+                        },
+                        onNavigateToImportCompare = { matrix ->
+                            openResMultiImportCompare(project, matrix)
+                        },
+                        modifier = modifier,
+                    )
+                }
+            }
+
+            is DashboardUiMode.ResMultiImportCompare -> {
+                val project =
+                    resMultiProjects.find { it.id == current.projectId }
+                        ?: openingResMultiProject?.takeIf { it.id == current.projectId }
+                val matrix = resMultiImportMatrix
+                if (project != null && matrix != null) {
+                    ResMultiImportCompareScreen(
+                        project = project,
+                        importedMatrix = matrix,
+                        repository = resMultiProjectRepository,
+                        onBack = {
+                            resMultiImportMatrix = null
+                            mode = DashboardUiMode.ResMultiDetail(project.id)
+                        },
+                        modifier = modifier,
+                    )
+                }
+            }
+
             is DashboardUiMode.CompareUpload -> {
                 val project =
                     compareProjects.find { it.id == current.projectId }
@@ -341,6 +404,25 @@ fun MainDashboardScreen(
                                     }
                                 },
                             )
+                            ResMultiProjectsSection(
+                                repository = resMultiProjectRepository,
+                                onCreateProject = { name ->
+                                    val created = resMultiProjectRepository.createProject(name)
+                                    openResMultiProject(created)
+                                },
+                                onProjectClick = { openResMultiProject(it) },
+                                onDeleteProject = { project ->
+                                    resMultiProjectRepository.deleteProject(project.id)
+                                    when (val currentMode = mode) {
+                                        is DashboardUiMode.ResMultiDetail -> {
+                                            if (currentMode.projectId == project.id) {
+                                                mode = DashboardUiMode.Home
+                                            }
+                                        }
+                                        else -> Unit
+                                    }
+                                },
+                            )
                             DashboardInsightSection()
                             Spacer(Modifier.height(AppSpacing.lg))
                         }
@@ -362,6 +444,14 @@ private sealed interface DashboardUiMode {
     ) : DashboardUiMode
 
     data class CompareDetail(
+        val projectId: String,
+    ) : DashboardUiMode
+
+    data class ResMultiDetail(
+        val projectId: String,
+    ) : DashboardUiMode
+
+    data class ResMultiImportCompare(
         val projectId: String,
     ) : DashboardUiMode
 }

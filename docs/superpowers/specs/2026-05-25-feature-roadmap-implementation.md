@@ -15,7 +15,7 @@
 | 3 | 设置页 · 默认 source/target 改为合并语言弹窗 | **高** | P0 | 2–3 人日 |
 | 4 | 单文件项目详情 · 导出 Excel（`.xlsx`） | **中高** | P1 | 4–6 人日 |
 | 5 | 双 string.xml 比对（自定义表格 + 吸顶） | **中** | P2 | 6–10 人日 |
-| 6 | 多文件项目（高级） | **中偏低** | 独立子里程碑 | 见 [多文件项目子里程碑](./2026-05-25-res-multi-project-milestones.md) |
+| 6 | 多文件项目（高级） | **中高** | 独立子里程碑 | 见 [多文件项目子里程碑](./2026-05-25-res-multi-project-milestones.md)（§0 复评：P1/P2 已就绪） |
 
 **总体结论**：在现有架构上均可实现；主路线图风险主要集中在 **(a) 双轴吸顶表格在 Compose 上的交互与性能**、**(b) 比对/导出对 `plurals` 的编解码扩展**（当前 `StringsXmlCodec` 尚未支持）。导出格式已确认为 **`.xlsx`**。多文件项目已拆至 **M1–M5** 子里程碑。建议按 P0 → P1 → P2 → 子里程碑顺序交付。
 
@@ -40,8 +40,8 @@
 - 设置项：`quickTranslateAutoMode`（自动/手动翻译）不存在。
 - 项目级 `forceTranslation` 未实现：需迁入项目详情设置并写入会话/项目元数据（**默认 false**，互不影响）。
 - 设置页默认语言为 **自由文本** `OutlinedTextField`，非合并引擎语言弹窗。
-- 无 `.xlsx` 导出/导入、无比对表格 UI；多文件项目见 [子里程碑文档](./2026-05-25-res-multi-project-milestones.md)。
-- `StringsXmlCodec` 尚无 `plurals` 解析/序列化（比对与后续导出若含 plurals 需先扩展模型与 codec）。
+- 无 `.xlsx` **导入**、多文件项目见 [子里程碑文档](./2026-05-25-res-multi-project-milestones.md)（**导出**与双文件比对 UI 已随 P1/P2 完成）。
+- `StringsXmlCodec` 已支持 `plurals`（P2）；多文件导出矩阵须基于 `ResourceFlattener` 新建 builder，勿沿用仅两列的 `StringsMatrixBuilder.buildForFileEditor`。
 - `Files` Tab 仅有「文件项目」一条线，无「文件比对 / 多文件项目」子模块路由。
 - 快速翻译成功路径仍会调用 `copyResultWithSnackbar`（待 P0 移除，与复制按钮解耦）。
 

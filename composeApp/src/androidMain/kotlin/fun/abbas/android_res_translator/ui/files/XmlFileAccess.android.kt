@@ -23,6 +23,7 @@ actual fun rememberXmlFileAccess(): XmlFileAccess {
     var saveCb by remember { mutableStateOf<((Boolean) -> Unit)?>(null) }
     var saveXlsxPayload by remember { mutableStateOf<Pair<ByteArray, String>?>(null) }
     var saveXlsxCb by remember { mutableStateOf<((Boolean) -> Unit)?>(null) }
+    var pickXlsxCb by remember { mutableStateOf<((Result<ByteArray>) -> Unit)?>(null) }
 
     val pickLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
@@ -41,6 +42,30 @@ actual fun rememberXmlFileAccess(): XmlFileAccess {
                                 stream.readBytes().decodeToString()
                             }
                         Result.success(text)
+                    } catch (e: Exception) {
+                        Result.failure(e)
+                    }
+                withContext(Dispatchers.Main) { cb(result) }
+            }
+        }
+
+    val pickXlsxLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+            val cb = pickXlsxCb
+            pickXlsxCb = null
+            if (cb == null) return@rememberLauncherForActivityResult
+            if (uri == null) {
+                cb(Result.failure(Exception("Cancelled")))
+                return@rememberLauncherForActivityResult
+            }
+            scope.launch(Dispatchers.IO) {
+                val result =
+                    try {
+                        val bytes =
+                            context.contentResolver.openInputStream(uri)!!.use { stream ->
+                                stream.readBytes()
+                            }
+                        Result.success(bytes)
                     } catch (e: Exception) {
                         Result.failure(e)
                     }
@@ -134,15 +159,38 @@ actual fun rememberXmlFileAccess(): XmlFileAccess {
                 saveXlsxCb = onDone
                 saveXlsxLauncher.launch(name)
             }
+
+            override fun launchPickSpreadsheet(onResult: (Result<ByteArray>) -> Unit) {
+                pickXlsxCb = onResult
+                pickXlsxLauncher.launch(
+                    arrayOf(
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        "application/vnd.ms-excel",
+                        "*/*",
+                    ),
+                )
+            }
         }
     }
 }
 
 @Composable
 actual fun rememberDirectoryPicker(onResult: (String?) -> Unit): () -> Unit {
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri: Uri? ->
-        onResult(uri?.path ?: uri?.toString())
-    }
+    val context = LocalContext.current
+    val launcher =
+        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri: Uri? ->
+            if (uri == null) {
+                onResult(null)
+                return@rememberLauncherForActivityResult
+            }
+            runCatching {
+                context.contentResolver.takePersistableUriPermission(
+                    uri,
+                    android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                )
+            }
+            onResult(uri.toString())
+        }
     return remember {
         {
             launcher.launch(null)

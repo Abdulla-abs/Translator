@@ -34,6 +34,7 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.ktor.client.android)
+            implementation("androidx.documentfile:documentfile:1.1.0")
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)

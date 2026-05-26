@@ -65,6 +65,7 @@ import `fun`.abbas.android_res_translator.ui.screens.SettingsScreen
 import `fun`.abbas.android_res_translator.ui.screens.fileeditor.FileEditorControllerStore
 import `fun`.abbas.android_res_translator.ui.screens.main.createTranslationProjectRepository
 import `fun`.abbas.android_res_translator.ui.screens.compare.createCompareProjectRepository
+import `fun`.abbas.android_res_translator.ui.screens.resmulti.createResMultiProjectRepository
 import `fun`.abbas.android_res_translator.ui.settings.AppSettingsRepository
 import `fun`.abbas.android_res_translator.ui.settings.RepositorySecretsProvider
 import `fun`.abbas.android_res_translator.ui.settings.createAppSettingsRepository
@@ -110,6 +111,7 @@ fun AppRoot(settingsRepository: AppSettingsRepository = createAppSettingsReposit
     val editorScope = rememberCoroutineScope()
     val projectRepository = remember(editorScope) { createTranslationProjectRepository(editorScope) }
     val compareProjectRepository = remember(editorScope) { createCompareProjectRepository(editorScope) }
+    val resMultiProjectRepository = remember(editorScope) { createResMultiProjectRepository(editorScope) }
     val editorControllerStore =
         remember(services, editorScope) {
             FileEditorControllerStore(services, editorScope)
@@ -243,6 +245,7 @@ fun AppRoot(settingsRepository: AppSettingsRepository = createAppSettingsReposit
                                         xmlFileAccess = xmlFileAccess,
                                         projectRepository = projectRepository,
                                         compareProjectRepository = compareProjectRepository,
+                                        resMultiProjectRepository = resMultiProjectRepository,
                                         editorControllerStore = editorControllerStore,
                                         onNavigateToFiles = { navigateToRootTab(backStack, RootRoute.Files) },
                                     )
@@ -352,6 +355,7 @@ fun AppRoot(settingsRepository: AppSettingsRepository = createAppSettingsReposit
                                     xmlFileAccess = xmlFileAccess,
                                     projectRepository = projectRepository,
                                     compareProjectRepository = compareProjectRepository,
+                                    resMultiProjectRepository = resMultiProjectRepository,
                                     editorControllerStore = editorControllerStore,
                                     onNavigateToFiles = { navigateToRootTab(backStack, RootRoute.Files) },
                                 )

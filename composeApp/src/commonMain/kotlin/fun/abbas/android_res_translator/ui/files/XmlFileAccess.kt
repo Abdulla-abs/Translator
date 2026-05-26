@@ -17,6 +17,8 @@ interface XmlFileAccess {
         suggestedName: String,
         onDone: (Boolean) -> Unit,
     )
+
+    fun launchPickSpreadsheet(onResult: (Result<ByteArray>) -> Unit)
 }
 
 @Composable

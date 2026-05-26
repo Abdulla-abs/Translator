@@ -26,6 +26,10 @@ actual fun rememberXmlFileAccess(): XmlFileAccess =
             ) {
                 onDone(false)
             }
+
+            override fun launchPickSpreadsheet(onResult: (Result<ByteArray>) -> Unit) {
+                onResult(Result.failure(Exception("iOS 端暂不支持选择表格文件")))
+            }
         }
     }
 
