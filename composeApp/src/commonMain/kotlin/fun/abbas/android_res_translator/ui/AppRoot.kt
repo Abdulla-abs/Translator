@@ -236,7 +236,7 @@ fun AppRoot(settingsRepository: AppSettingsRepository = createAppSettingsReposit
                         NavDisplay(
                             backStack = backStack,
                             onBack = { navigateBackFromRoot(backStack) },
-                            modifier = Modifier.padding(innerPadding),
+                            modifier = Modifier.fillMaxSize().padding(innerPadding),
                             entryProvider = entryProvider {
                                 entry<RootRoute.Translate> {
                                     MainDashboardScreen(
@@ -346,7 +346,7 @@ fun AppRoot(settingsRepository: AppSettingsRepository = createAppSettingsReposit
                     NavDisplay(
                         backStack = backStack,
                         onBack = { navigateBackFromRoot(backStack) },
-                        modifier = Modifier.padding(innerPadding),
+                        modifier = Modifier.fillMaxSize().padding(innerPadding),
                         entryProvider = entryProvider {
                             entry<RootRoute.Translate> {
                                 MainDashboardScreen(

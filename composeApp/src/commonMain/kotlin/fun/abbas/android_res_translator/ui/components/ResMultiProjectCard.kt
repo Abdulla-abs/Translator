@@ -25,9 +25,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import `fun`.abbas.android_res_translator.ui.screens.resmulti.ResMultiInitState
 import `fun`.abbas.android_res_translator.ui.screens.resmulti.ResMultiProject
+import `fun`.abbas.android_res_translator.ui.screens.resmulti.previewResMultiProject
+import `fun`.abbas.android_res_translator.ui.theme.AppTheme
 import `fun`.abbas.android_res_translator.util.currentEpochMillis
 import `fun`.abbas.android_res_translator.ui.theme.AppCodeSmallTextStyle
 import `fun`.abbas.android_res_translator.ui.theme.AppLabelCapsTextStyle
@@ -227,5 +230,61 @@ private fun formatModifiedAgo(epochMs: Long): String {
         hours < 1 -> stringResource(Res.string.file_project_modified_just_now)
         hours < 24 -> stringResource(Res.string.file_project_modified_hours, hours)
         else -> stringResource(Res.string.file_project_modified_days, hours / 24)
+    }
+}
+
+@Preview
+@Composable
+private fun ResMultiProjectCardReadyPreview() {
+    AppTheme {
+        ResMultiProjectCard(
+            project = previewResMultiProject(initState = ResMultiInitState.READY),
+            onClick = {},
+            onLongClick = {},
+            modifier = Modifier.padding(AppSpacing.md),
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun ResMultiProjectCardPendingPreview() {
+    AppTheme {
+        ResMultiProjectCard(
+            project = previewResMultiProject(initState = ResMultiInitState.PENDING),
+            onClick = {},
+            onLongClick = {},
+            modifier = Modifier.padding(AppSpacing.md),
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun ResMultiProjectCardInitializingPreview() {
+    AppTheme {
+        ResMultiProjectCard(
+            project = previewResMultiProject(initState = ResMultiInitState.INITIALIZING),
+            onClick = {},
+            onLongClick = {},
+            modifier = Modifier.padding(AppSpacing.md),
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun ResMultiProjectCardFailedPreview() {
+    AppTheme {
+        ResMultiProjectCard(
+            project =
+                previewResMultiProject(
+                    initState = ResMultiInitState.FAILED,
+                    initError = "Failed to read values/strings.xml",
+                ),
+            onClick = {},
+            onLongClick = {},
+            modifier = Modifier.padding(AppSpacing.md),
+        )
     }
 }

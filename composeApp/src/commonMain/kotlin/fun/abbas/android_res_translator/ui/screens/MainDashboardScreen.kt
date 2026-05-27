@@ -164,7 +164,7 @@ fun MainDashboardScreen(
                         onNavigateToImportCompare = { matrix ->
                             openResMultiImportCompare(project, matrix)
                         },
-                        modifier = modifier,
+                        modifier = modifier.fillMaxSize(),
                     )
                 }
             }

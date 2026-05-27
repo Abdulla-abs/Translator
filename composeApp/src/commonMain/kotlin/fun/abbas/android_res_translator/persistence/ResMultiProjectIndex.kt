@@ -54,6 +54,10 @@ data class ResMultiVersionIndex(
     val versions: List<ResMultiVersionIndexEntry> = emptyList(),
 )
 
+/** Newest-first display order; [versions] is stored oldest-first for push/delete semantics. */
+val ResMultiVersionIndex.versionsNewestFirst: List<ResMultiVersionIndexEntry>
+    get() = versions.asReversed()
+
 private val json =
     Json {
         ignoreUnknownKeys = true
