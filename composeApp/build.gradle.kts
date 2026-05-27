@@ -127,6 +127,13 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "fun.abbas.android_res_translator"
             packageVersion = "1.0.0"
+            modules("java.instrument", "java.management", "jdk.unsupported")
+        }
+
+        buildTypes.release.proguard {
+            configurationFiles.from(project.file("compose-desktop.pro"))
+            // Avoid VerifyError from aggressive bytecode optimization (Compose, Navigation3, etc.).
+            optimize.set(false)
         }
     }
 }
