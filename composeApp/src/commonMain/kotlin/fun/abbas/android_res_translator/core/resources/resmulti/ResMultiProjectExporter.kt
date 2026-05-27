@@ -12,6 +12,11 @@ data class ResMultiXlsxExport(
     val suggestedFileName: String,
 )
 
+data class ResMultiXmlExport(
+    val content: String,
+    val suggestedFileName: String,
+)
+
 object ResMultiProjectExporter {
     fun exportFull(project: ResMultiProject): Result<ResMultiXlsxExport> {
         val flats = loadLanguageFlats(project).getOrElse { return Result.failure(it) }
@@ -21,6 +26,29 @@ object ResMultiProjectExporter {
         return Result.success(
             ResMultiXlsxExport(
                 bytes = StringsMatrixExporter.encodeXlsx(matrix),
+                suggestedFileName = fileName,
+            ),
+        )
+    }
+
+    fun exportSingleXml(
+        project: ResMultiProject,
+        language: ResMultiLanguageEntry,
+    ): Result<ResMultiXmlExport> {
+        val path = stringsPath(project.id, language)
+        if (!fileExists(path)) {
+            return Result.failure(
+                IllegalStateException(
+                    "strings.xml not found: ${language.stringsRelativePath}",
+                ),
+            )
+        }
+        val xml = readTextFile(path)
+        val lang = language.langCode.ifBlank { "lang" }
+        val fileName = "${sanitizeFileName(project.displayName)}_$lang.xml"
+        return Result.success(
+            ResMultiXmlExport(
+                content = xml,
                 suggestedFileName = fileName,
             ),
         )

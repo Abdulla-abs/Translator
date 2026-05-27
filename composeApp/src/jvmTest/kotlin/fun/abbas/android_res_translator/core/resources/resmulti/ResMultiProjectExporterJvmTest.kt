@@ -38,6 +38,15 @@ class ResMultiProjectExporterJvmTest {
     }
 
     @Test
+    fun exportSingleXml_readsWorkspaceStringsXml() {
+        val project = createProjectWithWorkspace()
+        val lang = project.languages.first { it.langCode == "zh" }
+        val export = ResMultiProjectExporter.exportSingleXml(project, lang).getOrThrow()
+        assertTrue(export.suggestedFileName.contains("_zh.xml"))
+        assertTrue(export.content.contains("我的程序"))
+    }
+
+    @Test
     fun exportSingle_producesXlsxForSelectedLanguage() {
         val project = createProjectWithWorkspace()
         val lang = project.languages.first { it.langCode == "zh" }

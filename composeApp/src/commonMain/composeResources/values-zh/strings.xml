@@ -108,6 +108,7 @@
     <string name="resmulti_import_cell_imported">表格：%1$s</string>
     <string name="resmulti_export_all_xlsx">导出全量表格 (.xlsx)</string>
     <string name="resmulti_export_single_xlsx">导出单语言表格 (.xlsx)</string>
+    <string name="resmulti_export_single_xml">导出单语言文件 (.xml)</string>
     <string name="resmulti_detail_import_compare">导入表格比对</string>
     <string name="resmulti_detail_versions_title">版本追踪</string>
     <string name="resmulti_detail_version_count">已保存 %1$d 个版本</string>
@@ -142,6 +143,7 @@
     <string name="resmulti_files_fully_translated">已全部翻译</string>
     <string name="resmulti_files_export_full_desc">生成并下载包含所有字符串、描述和语言列的完整表格。</string>
     <string name="resmulti_files_export_single_desc">导出指定语言的本地化字符串表格。</string>
+    <string name="resmulti_files_export_single_xml_desc">导出工作区中指定语言目录下的 strings.xml 文件。</string>
     <string name="resmulti_files_import_compare_desc">重新导入外部编辑的表格，检测冲突并应用热修复。</string>
     <string name="resmulti_translate_search_placeholder">搜索资源 key、描述或译文…</string>
     <string name="resmulti_translate_filter_blank">筛选空白单元格</string>

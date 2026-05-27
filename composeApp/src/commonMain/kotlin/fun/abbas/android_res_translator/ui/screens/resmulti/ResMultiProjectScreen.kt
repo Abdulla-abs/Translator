@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.Arrangement
 import `fun`.abbas.android_res_translator.core.resources.export.StringsMatrix
 import `fun`.abbas.android_res_translator.core.resources.resmulti.ResMultiProjectExporter
 import `fun`.abbas.android_res_translator.core.resources.resmulti.ResMultiProjectImportService
+import `fun`.abbas.android_res_translator.core.resources.resmulti.ResMultiXmlExport
 import `fun`.abbas.android_res_translator.core.resources.resmulti.ResMultiXlsxExport
 import `fun`.abbas.android_res_translator.ui.rememberXmlFileAccess
 import androidx.compose.ui.Alignment
@@ -54,6 +55,11 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 
+private enum class SingleLanguageExportTarget {
+    Xlsx,
+    Xml,
+}
+
 @Composable
 fun ResMultiProjectScreen(
     project: ResMultiProject,
@@ -61,6 +67,7 @@ fun ResMultiProjectScreen(
     onBack: () -> Unit,
     onNavigateToImportCompare: (StringsMatrix) -> Unit,
     modifier: Modifier = Modifier,
+
 ) {
     val projects by repository.projects.collectAsState()
     val current = projects.find { it.id == project.id } ?: project
@@ -87,7 +94,7 @@ fun ResMultiProjectScreen(
     val versionPushSuccessMessage = stringResource(Res.string.resmulti_version_push_success)
     val xmlFileAccess = rememberXmlFileAccess()
     val snackbarHostState = remember { SnackbarHostState() }
-    var showLanguagePicker by remember { mutableStateOf(false) }
+    var singleLanguageExportTarget by remember { mutableStateOf<SingleLanguageExportTarget?>(null) }
     var exportInProgress by remember { mutableStateOf(false) }
     var showPushVersionDialog by remember { mutableStateOf(false) }
     val canPushVersion =
@@ -99,24 +106,35 @@ fun ResMultiProjectScreen(
     val exportCancelledMessage = stringResource(Res.string.file_editor_export_cancelled)
     val noLanguagesMessage = stringResource(Res.string.resmulti_export_no_languages)
 
+    fun notifyExportFinished(ok: Boolean) {
+        scope.launch {
+            snackbarHostState.showSnackbar(
+                if (ok) exportedMessage else exportCancelledMessage,
+            )
+        }
+    }
+
+    fun notifyExportFailed(error: Throwable) {
+        val detail = error.message ?: error.toString()
+        scope.launch {
+            snackbarHostState.showSnackbar(
+                getString(Res.string.resmulti_export_failed, detail),
+            )
+        }
+    }
+
     fun saveSpreadsheet(result: Result<ResMultiXlsxExport>) {
         result
             .onSuccess { export ->
-                xmlFileAccess.launchSaveSpreadsheet(export.bytes, export.suggestedFileName) { ok ->
-                    scope.launch {
-                        snackbarHostState.showSnackbar(
-                            if (ok) exportedMessage else exportCancelledMessage,
-                        )
-                    }
-                }
-            }.onFailure { error ->
-                val detail = error.message ?: error.toString()
-                scope.launch {
-                    snackbarHostState.showSnackbar(
-                        getString(Res.string.resmulti_export_failed, detail),
-                    )
-                }
-            }
+                xmlFileAccess.launchSaveSpreadsheet(export.bytes, export.suggestedFileName, ::notifyExportFinished)
+            }.onFailure(::notifyExportFailed)
+    }
+
+    fun saveXml(result: Result<ResMultiXmlExport>) {
+        result
+            .onSuccess { export ->
+                xmlFileAccess.launchSaveXml(export.content, export.suggestedFileName, ::notifyExportFinished)
+            }.onFailure(::notifyExportFailed)
     }
 
     fun performExportAll() {
@@ -232,8 +250,8 @@ fun ResMultiProjectScreen(
         }
     }
 
-    fun performExportSingle(language: ResMultiLanguageEntry) {
-        showLanguagePicker = false
+    fun performExportSingleXlsx(language: ResMultiLanguageEntry) {
+        singleLanguageExportTarget = null
         exportInProgress = true
         scope.launch {
             val result =
@@ -242,6 +260,27 @@ fun ResMultiProjectScreen(
                 }
             exportInProgress = false
             saveSpreadsheet(result)
+        }
+    }
+
+    fun performExportSingleXml(language: ResMultiLanguageEntry) {
+        singleLanguageExportTarget = null
+        exportInProgress = true
+        scope.launch {
+            val result =
+                withContext(Dispatchers.Default) {
+                    ResMultiProjectExporter.exportSingleXml(current, language)
+                }
+            exportInProgress = false
+            saveXml(result)
+        }
+    }
+
+    fun openSingleLanguageExportPicker(target: SingleLanguageExportTarget) {
+        if (current.languages.isEmpty()) {
+            scope.launch { snackbarHostState.showSnackbar(noLanguagesMessage) }
+        } else {
+            singleLanguageExportTarget = target
         }
     }
 
@@ -287,8 +326,8 @@ fun ResMultiProjectScreen(
         }
     }
 
-    if (showLanguagePicker) {
-        Dialog(onDismissRequest = { showLanguagePicker = false }) {
+    singleLanguageExportTarget?.let { exportTarget ->
+        Dialog(onDismissRequest = { singleLanguageExportTarget = null }) {
             Surface(shape = MaterialTheme.shapes.large) {
                 Column(
                     modifier = Modifier.padding(AppSpacing.lg),
@@ -301,12 +340,17 @@ fun ResMultiProjectScreen(
                             modifier =
                                 Modifier
                                     .fillMaxWidth()
-                                    .clickable { performExportSingle(lang) }
+                                    .clickable {
+                                        when (exportTarget) {
+                                            SingleLanguageExportTarget.Xlsx -> performExportSingleXlsx(lang)
+                                            SingleLanguageExportTarget.Xml -> performExportSingleXml(lang)
+                                        }
+                                    }
                                     .padding(vertical = AppSpacing.sm),
                         )
                     }
                     TextButton(
-                        onClick = { showLanguagePicker = false },
+                        onClick = { singleLanguageExportTarget = null },
                         modifier = Modifier.align(Alignment.End),
                     ) {
                         Text(stringResource(Res.string.common_cancel))
@@ -342,13 +386,8 @@ fun ResMultiProjectScreen(
                 versionBusy = versionBusy,
                 onPickDirectory = pickDirectory,
                 onExportAll = ::performExportAll,
-                onExportSingle = {
-                    if (current.languages.isEmpty()) {
-                        scope.launch { snackbarHostState.showSnackbar(noLanguagesMessage) }
-                    } else {
-                        showLanguagePicker = true
-                    }
-                },
+                onExportSingle = { openSingleLanguageExportPicker(SingleLanguageExportTarget.Xlsx) },
+                onExportSingleXml = { openSingleLanguageExportPicker(SingleLanguageExportTarget.Xml) },
                 onImportCompare = {
                     if (current.languages.isEmpty()) {
                         scope.launch { snackbarHostState.showSnackbar(noLanguagesMessage) }

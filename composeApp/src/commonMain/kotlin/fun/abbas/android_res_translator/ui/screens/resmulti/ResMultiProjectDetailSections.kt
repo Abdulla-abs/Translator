@@ -40,6 +40,8 @@ import androidx.compose.material.icons.Icons
 
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 
+import androidx.compose.material.icons.filled.Code
+
 import androidx.compose.material.icons.filled.Language
 
 import androidx.compose.material.icons.filled.SwapHoriz
@@ -96,6 +98,7 @@ import androidrestranslator.composeapp.generated.resources.resmulti_detail_sourc
 
 import androidrestranslator.composeapp.generated.resources.resmulti_export_all_xlsx
 
+import androidrestranslator.composeapp.generated.resources.resmulti_export_single_xml
 import androidrestranslator.composeapp.generated.resources.resmulti_export_single_xlsx
 
 import androidrestranslator.composeapp.generated.resources.resmulti_files_core_operations
@@ -103,6 +106,7 @@ import androidrestranslator.composeapp.generated.resources.resmulti_files_core_o
 import androidrestranslator.composeapp.generated.resources.resmulti_files_export_full_desc
 
 import androidrestranslator.composeapp.generated.resources.resmulti_files_export_single_desc
+import androidrestranslator.composeapp.generated.resources.resmulti_files_export_single_xml_desc
 
 import androidrestranslator.composeapp.generated.resources.resmulti_files_import_compare_desc
 
@@ -406,6 +410,8 @@ fun ResMultiProjectFunctionsBento(
 
     onExportSingle: () -> Unit,
 
+    onExportSingleXml: () -> Unit,
+
     onImportCompare: () -> Unit,
 
     actionsEnabled: Boolean,
@@ -478,6 +484,22 @@ fun ResMultiProjectFunctionsBento(
 
                 }
 
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
+                    verticalAlignment = Alignment.Top,
+                ) {
+                    ResMultiBentoActionCard(
+                        title = stringResource(Res.string.resmulti_export_single_xml),
+                        description = stringResource(Res.string.resmulti_files_export_single_xml_desc),
+                        icon = Icons.Default.Code,
+                        iconBackground = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.2f),
+                        enabled = canAct,
+                        onClick = onExportSingleXml,
+                        modifier = if (twoColumns) Modifier.weight(1f) else Modifier.fillMaxWidth(),
+                    )
+                }
+
             } else {
 
                 Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
@@ -513,6 +535,15 @@ fun ResMultiProjectFunctionsBento(
                         onClick = onExportSingle,
 
                         )
+
+                    ResMultiBentoActionCard(
+                        title = stringResource(Res.string.resmulti_export_single_xml),
+                        description = stringResource(Res.string.resmulti_files_export_single_xml_desc),
+                        icon = Icons.Default.Code,
+                        iconBackground = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.2f),
+                        enabled = canAct,
+                        onClick = onExportSingleXml,
+                    )
 
                 }
 
@@ -761,6 +792,8 @@ private fun ResMultiProjectFunctionsBentoPreview() {
             onExportAll = {},
 
             onExportSingle = {},
+
+            onExportSingleXml = {},
 
             onImportCompare = {},
 

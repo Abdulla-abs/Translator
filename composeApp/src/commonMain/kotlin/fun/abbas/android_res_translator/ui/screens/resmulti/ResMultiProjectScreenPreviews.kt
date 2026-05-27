@@ -45,6 +45,7 @@ private fun ResMultiProjectScreenLayoutPreview() {
                     onPickDirectory = {},
                     onExportAll = {},
                     onExportSingle = {},
+                    onExportSingleXml = {},
                     onImportCompare = {},
                     onRestoreVersion = {},
                     onDeleteVersion = {},

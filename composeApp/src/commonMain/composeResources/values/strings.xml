@@ -108,6 +108,7 @@
     <string name="resmulti_import_cell_imported">Spreadsheet: %1$s</string>
     <string name="resmulti_export_all_xlsx">Export full spreadsheet (.xlsx)</string>
     <string name="resmulti_export_single_xlsx">Export single language (.xlsx)</string>
+    <string name="resmulti_export_single_xml">Export single language (.xml)</string>
     <string name="resmulti_detail_import_compare">Import spreadsheet to compare</string>
     <string name="resmulti_detail_versions_title">Version history</string>
     <string name="resmulti_detail_version_count">%1$d versions saved</string>
@@ -142,6 +143,7 @@
     <string name="resmulti_files_fully_translated">Fully translated</string>
     <string name="resmulti_files_export_full_desc">Generate and download a comprehensive spreadsheet containing all strings, descriptions, and locales.</string>
     <string name="resmulti_files_export_single_desc">Export a targeted sheet containing localized string rows for a specific language.</string>
+    <string name="resmulti_files_export_single_xml_desc">Export the workspace strings.xml file for a specific language locale.</string>
     <string name="resmulti_files_import_compare_desc">Re-import externally edited tables, detect conflicts, and apply hotfixes.</string>
     <string name="resmulti_translate_search_placeholder">Search resource keys, descriptions, or translated texts…</string>
     <string name="resmulti_translate_filter_blank">Filter Blank Cells</string>
