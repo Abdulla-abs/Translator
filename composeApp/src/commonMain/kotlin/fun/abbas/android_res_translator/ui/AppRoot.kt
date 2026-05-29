@@ -1,10 +1,12 @@
 package `fun`.abbas.android_res_translator.ui
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -24,6 +26,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.OutlinedTextField
@@ -45,6 +50,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
@@ -122,7 +128,7 @@ fun AppRoot(settingsRepository: AppSettingsRepository = createAppSettingsReposit
         AppTheme(appearance = snap.appAppearance) {
             val colors = MaterialTheme.colorScheme
             BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-                val isWide = maxWidth >= 768.dp
+                val navLayout = appNavigationLayout(maxWidth, maxHeight)
                 val navDeps =
                     AppRootNavDependencies(
                         backStack = backStack,
@@ -137,38 +143,62 @@ fun AppRoot(settingsRepository: AppSettingsRepository = createAppSettingsReposit
                         onFilesSearchQueryChange = { filesSearchQuery = it },
                     )
 
-                if (isWide) {
-                    PermanentNavigationDrawer(
-                        drawerContent = {
-                            AppRootDrawerSheet(
+                when (navLayout) {
+                    AppNavigationLayout.Expanded -> {
+                        PermanentNavigationDrawer(
+                            drawerContent = {
+                                AppRootDrawerSheet(
+                                    rootTabs = rootTabs,
+                                    currentRoute = currentRoute,
+                                    backStack = backStack,
+                                )
+                            },
+                        ) {
+                            AppRootMainScaffold(
+                                containerColor = colors.background,
+                                currentRoute = currentRoute,
+                                rootTabs = rootTabs,
+                                backStack = backStack,
+                                showBottomNav = false,
+                                filesSearchQuery = filesSearchQuery,
+                                onFilesSearchQueryChange = { filesSearchQuery = it },
+                                navDeps = navDeps,
+                            )
+                        }
+                    }
+                    AppNavigationLayout.Medium -> {
+                        Row(Modifier.fillMaxSize()) {
+                            AppRootNavigationRail(
                                 rootTabs = rootTabs,
                                 currentRoute = currentRoute,
-                                backStack = backStack,
+                                onTabClick = { route -> navigateToRootTab(backStack, route) },
                             )
-                        },
-                    ) {
+                            Box(Modifier.weight(1f).fillMaxHeight()) {
+                                AppRootMainScaffold(
+                                    containerColor = colors.background,
+                                    currentRoute = currentRoute,
+                                    rootTabs = rootTabs,
+                                    backStack = backStack,
+                                    showBottomNav = false,
+                                    filesSearchQuery = filesSearchQuery,
+                                    onFilesSearchQueryChange = { filesSearchQuery = it },
+                                    navDeps = navDeps,
+                                )
+                            }
+                        }
+                    }
+                    AppNavigationLayout.Compact -> {
                         AppRootMainScaffold(
                             containerColor = colors.background,
                             currentRoute = currentRoute,
                             rootTabs = rootTabs,
                             backStack = backStack,
-                            showBottomNav = false,
+                            showBottomNav = true,
                             filesSearchQuery = filesSearchQuery,
                             onFilesSearchQueryChange = { filesSearchQuery = it },
                             navDeps = navDeps,
                         )
                     }
-                } else {
-                    AppRootMainScaffold(
-                        containerColor = colors.background,
-                        currentRoute = currentRoute,
-                        rootTabs = rootTabs,
-                        backStack = backStack,
-                        showBottomNav = true,
-                        filesSearchQuery = filesSearchQuery,
-                        onFilesSearchQueryChange = { filesSearchQuery = it },
-                        navDeps = navDeps,
-                    )
                 }
             }
         }
@@ -268,15 +298,18 @@ private fun AppRootMainScaffold(
 ) {
     val colors = MaterialTheme.colorScheme
     val showFilesSearch = currentRoute == RootRoute.Files
+    val hideTopBarTitle = showBottomNav && showFilesSearch
     Scaffold(
         containerColor = containerColor,
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        stringResource(Res.string.app_name),
-                        style = MaterialTheme.typography.headlineSmall,
-                    )
+                    if (!hideTopBarTitle) {
+                        Text(
+                            stringResource(Res.string.app_name),
+                            style = MaterialTheme.typography.headlineSmall,
+                        )
+                    }
                 },
                 navigationIcon = {
                     if (showBottomNav) {
@@ -290,15 +323,9 @@ private fun AppRootMainScaffold(
                 },
                 actions = {
                     if (showFilesSearch) {
-                        OutlinedTextField(
-                            value = filesSearchQuery,
-                            onValueChange = onFilesSearchQueryChange,
-                            placeholder = { Text(stringResource(Res.string.files_search_placeholder)) },
-                            leadingIcon = {
-                                Icon(Icons.Default.Search, contentDescription = null)
-                            },
-                            singleLine = true,
-                            shape = AppControlShape,
+                        AppRootFilesSearchField(
+                            query = filesSearchQuery,
+                            onQueryChange = onFilesSearchQueryChange,
                             modifier = Modifier.widthIn(max = 220.dp).padding(end = 8.dp),
                         )
                     }
@@ -324,6 +351,67 @@ private fun AppRootMainScaffold(
             modifier = Modifier.fillMaxSize().padding(innerPadding),
         )
     }
+}
+
+@Composable
+private fun AppRootNavigationRail(
+    rootTabs: List<RootTabItem>,
+    currentRoute: NavKey?,
+    onTabClick: (RootRoute) -> Unit,
+) {
+    val colors = MaterialTheme.colorScheme
+    NavigationRail(
+        containerColor = colors.surfaceContainerLow,
+        header = {
+            Icon(
+                Icons.Default.Terminal,
+                contentDescription = null,
+                tint = colors.primary,
+                modifier = Modifier.padding(vertical = 16.dp).size(24.dp),
+            )
+        },
+    ) {
+        rootTabs.forEach { tab ->
+            NavigationRailItem(
+                selected = currentRoute == tab.route,
+                onClick = { onTabClick(tab.route) },
+                icon = {
+                    Icon(
+                        tab.icon,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                    )
+                },
+                label = { Text(stringResource(tab.labelRes)) },
+                colors = NavigationRailItemDefaults.colors(
+                    selectedIconColor = colors.onPrimaryContainer,
+                    selectedTextColor = colors.onSurface,
+                    indicatorColor = colors.primaryContainer,
+                    unselectedIconColor = colors.onSurfaceVariant,
+                    unselectedTextColor = colors.onSurfaceVariant,
+                ),
+            )
+        }
+    }
+}
+
+@Composable
+private fun AppRootFilesSearchField(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        placeholder = { Text(stringResource(Res.string.files_search_placeholder)) },
+        leadingIcon = {
+            Icon(Icons.Default.Search, contentDescription = null)
+        },
+        singleLine = true,
+        shape = AppControlShape,
+        modifier = modifier,
+    )
 }
 
 @Composable
@@ -391,7 +479,6 @@ private fun AppRootNavDisplay(
                     projectRepository = navDeps.projectRepository,
                     editorControllerStore = navDeps.editorControllerStore,
                     searchQuery = navDeps.filesSearchQuery,
-                    onSearchQueryChange = navDeps.onFilesSearchQueryChange,
                 )
             }
             entry<RootRoute.Settings> {
@@ -403,6 +490,20 @@ private fun AppRootNavDisplay(
         },
     )
 }
+
+private enum class AppNavigationLayout {
+    Compact,
+    Medium,
+    Expanded,
+}
+
+private fun appNavigationLayout(maxWidth: Dp, maxHeight: Dp): AppNavigationLayout =
+    when {
+        maxWidth >= 840.dp -> AppNavigationLayout.Expanded
+        maxWidth >= 768.dp && maxHeight >= 600.dp -> AppNavigationLayout.Expanded
+        maxWidth >= 600.dp -> AppNavigationLayout.Medium
+        else -> AppNavigationLayout.Compact
+    }
 
 private fun navigateToRootTab(
     backStack: MutableList<NavKey>,

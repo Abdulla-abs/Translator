@@ -3,6 +3,7 @@ package `fun`.abbas.android_res_translator.ui.theme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import `fun`.abbas.android_res_translator.ui.platform.ApplySystemBarsAppearance
 import `fun`.abbas.android_res_translator.ui.settings.AppAppearance
 
 /**
@@ -13,12 +14,15 @@ fun AppTheme(
     appearance: AppAppearance = AppAppearance.Classic,
     content: @Composable () -> Unit,
 ) {
+    val colorScheme = appearance.resolveColorScheme()
     CompositionLocalProvider(LocalCodeTextStyle provides AppCodeTextStyle) {
         MaterialTheme(
-            colorScheme = appearance.resolveColorScheme(),
+            colorScheme = colorScheme,
             typography = AppTypography,
             shapes = AppShapes,
-            content = content,
-        )
+        ) {
+            ApplySystemBarsAppearance(colorScheme)
+            content()
+        }
     }
 }

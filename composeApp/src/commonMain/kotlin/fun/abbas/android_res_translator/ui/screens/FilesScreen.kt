@@ -1,15 +1,9 @@
 package `fun`.abbas.android_res_translator.ui.screens
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -19,7 +13,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import `fun`.abbas.android_res_translator.core.ports.createDefaultFileTree
 import `fun`.abbas.android_res_translator.ui.TranslationServices
 import `fun`.abbas.android_res_translator.ui.XmlFileAccess
@@ -31,12 +24,7 @@ import `fun`.abbas.android_res_translator.ui.screens.files.FileBrowserScreen
 import `fun`.abbas.android_res_translator.ui.screens.files.FileBrowserStore
 import `fun`.abbas.android_res_translator.ui.screens.main.TranslationProjectRepository
 import `fun`.abbas.android_res_translator.ui.settings.AppSettingsRepository
-import `fun`.abbas.android_res_translator.ui.theme.AppControlShape
-import `fun`.abbas.android_res_translator.ui.theme.AppSpacing
 import `fun`.abbas.android_res_translator.ui.translation.LanguagePickerCatalog
-import androidrestranslator.composeapp.generated.resources.Res
-import androidrestranslator.composeapp.generated.resources.files_search_placeholder
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun FilesScreen(
@@ -46,7 +34,6 @@ fun FilesScreen(
     projectRepository: TranslationProjectRepository,
     editorControllerStore: FileEditorControllerStore,
     searchQuery: String,
-    onSearchQueryChange: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val fileTree = remember { createDefaultFileTree() }
@@ -54,67 +41,19 @@ fun FilesScreen(
     var mode by remember { mutableStateOf<FilesUiMode>(FilesUiMode.Browse) }
     val snap by settings.snapshot.collectAsState()
     val selectedEngine = remember(snap) { LanguagePickerCatalog.resolveSelectedEngine(snap) }
-    var compactSearch by remember { mutableStateOf("") }
-
     LaunchedEffect(searchQuery) {
-        if (searchQuery.isNotEmpty() || compactSearch.isEmpty()) {
-            store.setSearchQuery(searchQuery)
-        }
+        store.setSearchQuery(searchQuery)
     }
 
     WithFilePermissions {
     when (val current = mode) {
         FilesUiMode.Browse ->
-            BoxWithConstraints(modifier = modifier.fillMaxSize()) {
-                val useCompactSearch = maxWidth < 600.dp
-                if (useCompactSearch) {
-                    Column(Modifier.fillMaxSize()) {
-                        OutlinedTextField(
-                            value = compactSearch,
-                            onValueChange = {
-                                compactSearch = it
-                                onSearchQueryChange(it)
-                                store.setSearchQuery(it)
-                            },
-                            placeholder = { Text(stringResource(Res.string.files_search_placeholder)) },
-                            singleLine = true,
-                            shape = AppControlShape,
-                            modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = AppSpacing.gutter, vertical = AppSpacing.sm),
-                        )
-                        FileBrowserScreen(
-                            store = store,
-                            recentProjects = projectRepository,
-                            defaultSourceLang = snap.defaultSourceLang,
-                            defaultTargetLang = snap.defaultTargetLang,
-                            xmlFileAccess = xmlFileAccess,
-                            onOpenFile = { file -> mode = FilesUiMode.Detail(file) },
-                            showCompactSearch = true,
-                            compactSearchQuery = compactSearch,
-                            onCompactSearchChange = { compactSearch = it },
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
-                } else {
-                    LaunchedEffect(searchQuery) {
-                        store.setSearchQuery(searchQuery)
-                    }
-                    FileBrowserScreen(
-                        store = store,
-                        recentProjects = projectRepository,
-                        defaultSourceLang = snap.defaultSourceLang,
-                        defaultTargetLang = snap.defaultTargetLang,
-                        xmlFileAccess = xmlFileAccess,
-                        onOpenFile = { file -> mode = FilesUiMode.Detail(file) },
-                        showCompactSearch = false,
-                        compactSearchQuery = "",
-                        onCompactSearchChange = {},
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                }
-            }
+            FileBrowserScreen(
+                store = store,
+                recentProjects = projectRepository,
+                onOpenFile = { file -> mode = FilesUiMode.Detail(file) },
+                modifier = modifier.fillMaxSize(),
+            )
 
         is FilesUiMode.Detail -> {
             var fileContent by remember(current.file.id) { mutableStateOf<String?>(null) }
