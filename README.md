@@ -25,6 +25,10 @@
 |:---:|:---:|
 | ![About](screenshot/windows/w_about.png) | ![Settings](screenshot/windows/w_settings.png) |
 
+| File editor | XML compare | Multi-file import compare |
+|:---:|:---:|:---:|
+| ![File editor](screenshot/windows/FileEditorScreen.png) | ![XML compare](screenshot/windows/CompareDetail.png) | ![Multi-file import compare](screenshot/windows/ResMultiImportCompare.png) |
+
 ### Android
 
 | Dashboard | Files |
@@ -73,6 +77,8 @@ Batch-translate one **`strings.xml`** at a time. Two workflow modes (chosen at u
 
 **Input**: click upload cards, drag-and-drop XML (desktop), or open from the **Files** tab.
 
+![Single-file translation editor](screenshot/windows/FileEditorScreen.png)
+
 ### 2. Quick translate (Dashboard)
 
 - Trial short text with current source/target languages
@@ -89,6 +95,8 @@ Side-by-side diff of **two** `strings.xml` files (no API calls).
 - Tap a cell to copy its text to the clipboard
 - Re-upload either side to refresh the comparison
 
+![XML compare detail](screenshot/windows/CompareDetail.png)
+
 ### 4. Multi-file `res` projects (Multi-file Projects)
 
 Import an entire Android **`res/`** tree (`values/`, `values-en/`, …) and manage all `strings.xml` files together.
@@ -100,6 +108,8 @@ Import an entire Android **`res/`** tree (`values/`, `values-en/`, …) and mana
 - Dirty-state hint when workspace differs from last saved version
 
 > Batch AI translation for multi-file projects is planned; export/import/compare/versioning is available today.
+
+![Multi-file res import compare](screenshot/windows/ResMultiImportCompare.png)
 
 ### 5. Files tab
 

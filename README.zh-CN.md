@@ -25,6 +25,10 @@
 |:---:|:---:|
 | ![About](screenshot/windows/w_about.png) | ![Settings](screenshot/windows/w_settings.png) |
 
+| 文件编辑器 | XML 对比 | 多文件导入对比 |
+|:---:|:---:|:---:|
+| ![文件编辑器](screenshot/windows/FileEditorScreen.png) | ![XML 对比](screenshot/windows/CompareDetail.png) | ![多文件导入对比](screenshot/windows/ResMultiImportCompare.png) |
+
 ### Android
 
 | Dashboard | Files |
@@ -73,6 +77,8 @@
 
 **导入方式**：点击上传卡片、拖拽 XML（桌面端），或从 **文件** 标签页打开。
 
+![单文件翻译编辑器](screenshot/windows/FileEditorScreen.png)
+
 ### 2. 快速翻译（首页）
 
 - 短文本试译，验证密钥与语言对
@@ -89,6 +95,8 @@
 - 点击单元格复制内容到剪贴板
 - 可重新上传任一侧以刷新对比
 
+![XML 对比详情](screenshot/windows/CompareDetail.png)
+
 ### 4. 多文件 `res` 项目（Multi-file Projects）
 
 导入整个 Android **`res/`** 目录（`values/`、`values-en/` 等），统一管理各语言 `strings.xml`。
@@ -100,6 +108,8 @@
 - 工作区有未保存变更时显示 dirty 提示
 
 > 多文件项目的批量 AI 翻译规划中；导出/导入对比/版本管理已可用。
+
+![多文件 res 导入对比](screenshot/windows/ResMultiImportCompare.png)
 
 ### 5. 文件标签页
 

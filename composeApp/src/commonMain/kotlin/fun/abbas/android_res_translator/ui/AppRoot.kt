@@ -32,9 +32,9 @@ import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.PermanentDrawerSheet
 import androidx.compose.material3.PermanentNavigationDrawer
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -75,6 +75,7 @@ import `fun`.abbas.android_res_translator.ui.settings.RepositorySecretsProvider
 import `fun`.abbas.android_res_translator.ui.settings.createAppSettingsRepository
 import `fun`.abbas.android_res_translator.ui.theme.AppControlShape
 import `fun`.abbas.android_res_translator.ui.theme.AppLabelCapsTextStyle
+import `fun`.abbas.android_res_translator.ui.theme.AppSidebarShape
 import `fun`.abbas.android_res_translator.ui.theme.AppTheme
 import androidrestranslator.composeapp.generated.resources.Res
 import androidrestranslator.composeapp.generated.resources.app_name
@@ -225,7 +226,12 @@ private fun AppRootDrawerSheet(
     currentRoute: NavKey?,
     backStack: MutableList<NavKey>,
 ) {
-    PermanentDrawerSheet(modifier = Modifier.width(256.dp)) {
+    val colors = MaterialTheme.colorScheme
+    Surface(
+        modifier = Modifier.width(256.dp).fillMaxHeight(),
+        shape = AppSidebarShape,
+        color = colors.surfaceContainerLow,
+    ) {
         AppRootDrawerContent(
             rootTabs = rootTabs,
             currentRoute = currentRoute,
@@ -278,6 +284,7 @@ private fun AppRootDrawerContent(
                 },
                 selected = currentRoute == tab.route,
                 onClick = { onTabClick(tab.route) },
+                shape = AppControlShape,
                 modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
             )
         }

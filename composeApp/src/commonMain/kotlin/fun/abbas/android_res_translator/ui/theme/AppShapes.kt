@@ -21,4 +21,6 @@ val AppShapes =
 
 val AppCardShape = RoundedCornerShape(12.dp)
 val AppControlShape = RoundedCornerShape(8.dp)
+/** 大屏永久侧栏容器（矩形圆角，非胶囊形） */
+val AppSidebarShape = RoundedCornerShape(12.dp)
 val AppIndicatorShape = RoundedCornerShape(2.dp)
